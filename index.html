@@ -1,10 +1,350 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html>
+<head lang="en">
     <meta charset="UTF-8">
-    <title></title>
+    <title>Rikud: Music Player for dancers</title>
+    <style>
+        body {
+            font-family: arial, halvetica;
+        }
+
+        .error {
+            color: maroon;
+        }
+
+        .u {
+            text-decoration: underline;
+        }
+
+        .title {
+            clear: both;
+            display: block;
+        }
+        .subtitle {
+            font-size: 1rem;
+        }
+        /* ============================================================================================ */
+        .cassette-label { text-align:center;}
+        .controls {
+            margin: 0 auto;
+            width: 35rem;
+        }
+
+        .buttons {
+            list-style:none;
+            margin: 0 auto 1rem;
+            padding: 0;
+            text-align: center;
+        }
+
+        .buttons li{
+            display: inline-block;
+            margin:0;
+        }
+
+        .buttons input,
+        .buttons button {
+            border: 0.1rem solid lightblue;
+            border-radius:0.5rem;
+            font-size:1.1rem;
+            height: 32px;
+        }
+        .buttons button {
+            background-color: whitesmoke;
+            cursor: pointer;
+            width: 64px;
+        }
+
+        button.pressed,
+        button:active {
+            background-color: lightblue;
+            color: white;
+        }
+
+        .buttons .file {
+            width:20rem;
+        }
+        .countdown {
+            margin: 3% 47%;
+            color: black;
+            -webkit-text-fill-color: #c0392b; /* Will override color (regardless of order) */
+            -webkit-text-stroke-width: 1px;
+            -webkit-text-stroke-color: black;
+            position: absolute;
+            font-size:9rem;
+            font-family: 'Walter Turncoat', cursive;
+            z-index: 99;
+        }
+
+        /* ============================================================================================ */
+        .controls label {
+            color: #999;
+            display: block;
+            font-size:0.7rem;
+            text-align: center;
+        }
+        .controls input[type="number"], .position {
+            border: none;
+            border-bottom: 0.1rem dashed dimgray;
+            text-align: center;
+            width: 7.5rem;
+            font-size: 2rem;
+        }
+
+        .progress-control {
+            list-style: none;
+            margin: 0.5rem 0;
+            padding: 0;
+        }
+        .progress-control li{
+            display: inline-block;
+            vertical-align: top;
+            text-align: center;
+            width:8.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+        }
+
+        .speedFieldRow {
+            display: inline-block;
+            text-align:center;
+        }
+
+        .speed-bar {
+            width: 24.5rem;
+            vertical-align: top;
+            margin: 1rem;
+        }
+        /* ============================================================================================ */
+
+    </style>
 </head>
 <body>
-    Hello world
+<noscript class="error">
+    <h2>JavaScript is disabled in your browser. How do you expect FileDrop to work?</h2>
+</noscript>
+
+<audio id="audio" preload="none" src="the_apples-chemical_sniffer.mp3" type="audio/mpeg"></audio>
+
+<div id="countdown" class="countdown"></div>
+<header class="visuals">
+    <div class="progress">
+        <div class="cassette-parts cassette-back"></div>
+        <div class="wheel-animation wheel-animation-left"></div>
+        <div class="wheel-animation wheel-animation-right"></div>
+        <div class="cassette-parts cassette-cover"></div>
+        <h1 class="cassette-label"><span class="title">Rikud</span><span class="subtitle">Music Player for Dancers</span></h1>
+        <div class="wheel-wrapper"><div id="wheel-left" class="wheel"></div><div class="wheel-height-keeper"></div></div>
+        <div class="wheel-wrapper"><div id="wheel-right" class="wheel"></div><div class="wheel-height-keeper"></div></div>
+    </div>
+</header>
+
+<form id="controls" class="controls">
+    <div class="buttons">
+        <button id="btnReset" title="Reset" accesskey="r"><span><span class="u">R</span>eset</span></button>
+        <button id="btnPlay" title="Play" accesskey="p"><span><span class="u">P</span>lay</span></button>
+        <button id="btnLoop" title="Loop" accesskey="l"><span><span class="u">L</span>oop</span></button>
+        <input type="text" id="file" name="file" class="file" required="required" placeholder="local file or URL"/>
+    </div>
+
+    <input type="range" name="progressBar" id="progressBar" class="progress-bar" min="0" max="1" value="0" step="0.001" />
+
+    <ul class="progress-control">
+        <li>
+            <input type="number" name="delay" id="delay" placeholder="(sec)" min="0"/>
+            <label for="end"><span class="u">W</span>ait before start</label>
+        </li>
+        <li>
+            <input type="number" name="start" id="start" placeholder="(sec)" min="0"/>
+            <label for="start"><span class="u">S</span>tart</label>
+        </li>
+        <li id="progress">
+            <input name="currentPosition" id="currentPosition" type="text" class="position" readonly="readonly" />
+            <label for="currentPosition">Current</label>
+        </li>
+        <li>
+            <input type="number" name="end" id="end" placeholder="(sec)" min="0" />
+            <label for="end"><span class="u">E</span>nd</label>
+        </li>
+    </ul>
+    <input type="range" name="speedBar" id="speedBar" class="speed-bar" min="50" max="110" value="100" orient="horizontal"/>
+    <div class="speedFieldRow">
+        <input type="number" name="speed" id="speed" class="speed" min="50" max="110" value="100"/>
+        <label for="speed">Spee<span class="u">d</span> (%)</label>
+    </div>
+</form>
 </body>
+<script type="text/javascript" src="rikudMusicPlayer.js"></script>
+<script>
+    (function () {
+        var     isLoop = false,
+                delayCountDown = false,
+                prettifyTime = function prettifyTime (time) {
+                    return ((time > 60) ? Math.floor(time/60)+":" : "") +(time % 60).toFixed(2);
+                },
+                getEventDispatcher = function getEventDispatcher (eventName) {
+                    return function (ev) {
+                        document.dispatchEvent(new CustomEvent(eventName, {detail: ev}));
+                        return false;
+                    };
+                },
+                setEventAndDefaultMethod = function setEventAndDefaultMethod (eventName, method) {
+                    document.addEventListener(eventName,method);
+                    return getEventDispatcher(eventName);
+                },
+
+                onPlay = function onPlay () {
+                    if (!dAudio.paused) {
+                        document.dispatchEvent(new CustomEvent("pause"));
+                    } else {
+                        dPlay.className += " pressed";
+
+                        var delay = +dDelay.value;
+                        if (dAudio.currentTime == (+dStart.value) && delay) {
+                            if (delayCountDown) { clearInterval(delayCountDown); }
+                            delayCountDown = window.setInterval(function () {
+                                document.getElementById("countdown").innerHTML = --delay;
+                                if (!delay) {
+                                    dAudio.play();
+                                    clearInterval(delayCountDown);
+                                    delete (delayCountDown);
+                                    document.getElementById("countdown").innerHTML = "";
+                                }
+                            }, 1000);
+                        } else {
+                            dAudio.play();
+                        }
+                    }
+                },
+
+                onReset = function onReset () {
+                    var time = +dStart.value;
+                    dAudio.currentTime = time;
+                    dCurrentPosition.value = prettifyTime(time);
+                    dProgressBar.value = dAudio.currentTime/ dAudio.duration;
+                },
+                onPause = function onPause () {
+                    dAudio.pause();
+                    dPlay.className = dPlay.className.replace(/ pressed/,"");
+                },
+                onStop = function onStop () {
+                    document.dispatchEvent(new CustomEvent("reset"));
+                    document.dispatchEvent(new CustomEvent("pause"));
+                },
+                onLoop = function onLoop () {
+                    isLoop = !isLoop;
+                    if (isLoop) {
+                        dLoop.className += " pressed";
+                    } else {
+                        dLoop.className = dLoop.className.replace(/ pressed/,"");
+                    }
+                },
+                onSpeed = function onSpeed (ev) {
+                    var value = +ev.detail.target.value;
+                    dAudio.playbackRate = (value)/100;
+                    (ev.detail.target===dSpeed ? dSpeedBar : dSpeed).value = value;
+                },
+                onSetFile = function onSetFile () {
+                    var path = dFile.value;
+                    if ((path.indexOf("dropbox")>-1) && path.indexOf("raw=1")==-1) {
+                        path = (path.indexOf("?")==-1) ? path+"?raw=1" : path.replace(/\?/,"?raw=1&");
+                    }
+                  dAudio.src = path;
+                },
+                onPosition = function onPosition () {
+                    dAudio.currentTime = dProgressBar.value * dAudio.duration;
+                },
+                onPlaying = function onPlaying () {
+                    var time = dAudio.currentTime;
+                    dCurrentPosition.value = prettifyTime(time);
+                    dProgressBar.value = dAudio.currentTime/dAudio.duration;
+                    var end = +dEnd.value;
+                    if (end && end < time) {
+                        document.dispatchEvent(new CustomEvent("stop"));
+                        if (isLoop) {
+                            document.dispatchEvent(new CustomEvent("play"));
+                        }
+                    }
+                },
+                onInterval = function onInterval () {
+                    if (!dAudio.paused) {
+                        document.dispatchEvent(new CustomEvent("playing"));
+                    }
+                },
+                onError = function onError (ev) {
+                    if (dAudio.error.code == 4) {
+                        alert ("something went wrong\nI think I'm missing the audio file....");
+                    } else {
+                        alert ("oops! something went wrong");
+                    }
+                    document.dispatchEvent(new CustomEvent("stop"));
+                },
+                onKeyUp = function onKeyUp (ev) {
+                    if (dFile !== document.activeElement) {
+                        switch (String.fromCharCode(ev.which || ev.keyCode)) {
+                            case "r":
+                            case "R":
+                                document.dispatchEvent(new CustomEvent("reset"));
+                                break;
+                            case "p":
+                            case "P":
+                                document.dispatchEvent(new CustomEvent("play"));
+                                break;
+                            case "l":
+                            case "L":
+                                document.dispatchEvent(new CustomEvent("loop"));
+                                break;
+                            case "w":
+                            case "W":
+                                dDelay.focus();
+                                break;
+                            case "s":
+                            case "S":
+                                dStart.focus();
+                                break;
+                            case "e":
+                            case "E":
+                                sEnd.focus();
+                                break;
+                            case "d":
+                            case "D":
+                                dSpeed.focus();
+                                break;
+                        }
+                    }
+                },
+                dAudio = document.getElementById("audio"),
+                dStart = document.getElementById("start"),
+                dProgressBar = document.getElementById("progressBar"),
+                dCurrentPosition = document.getElementById("currentPosition"),
+                dEnd = document.getElementById("end"),
+                dDelay = document.getElementById("delay"),
+                dSpeed = document.getElementById("speed"),
+                dSpeedBar = document.getElementById("speedBar"),
+                dReset = document.getElementById("btnReset"),
+                dPlay = document.getElementById("btnPlay"),
+                dLoop = document.getElementById("btnLoop"),
+                dFile = document.getElementById("file");
+
+
+        window.onload = function () {
+            dAudio.onerror = setEventAndDefaultMethod("error", onError);
+            dFile.onchange = setEventAndDefaultMethod("setFile", onSetFile);
+            dReset.onclick = setEventAndDefaultMethod("reset", onReset);
+            dPlay.onclick = setEventAndDefaultMethod("play", onPlay);
+            dLoop.onclick = setEventAndDefaultMethod("loop", onLoop);
+            dSpeed.onchange = setEventAndDefaultMethod("speed", onSpeed);
+            dSpeedBar.onchange = setEventAndDefaultMethod("speed", onSpeed);
+            dProgressBar.onchange = setEventAndDefaultMethod("position", onPosition);
+            setEventAndDefaultMethod("stop", onStop); // stop = reset+pause
+            setEventAndDefaultMethod("pause", onPause);
+            setEventAndDefaultMethod("playing", onPlaying);
+            document.onkeyup = onKeyUp;
+
+            window.setInterval(onInterval, 1);
+        }
+    })();
+</script>
 </html>
