@@ -126,7 +126,14 @@
             margin: 1rem;
         }
         /* ============================================================================================ */
-
+        .readme {
+            font-size: 0.8rem;
+            width: 34rem;
+            margin: 2rem auto 0;
+            border-top: 0.3rem double #999;
+            color: #666;
+            line-height: 1.5rem;
+        }
     </style>
 </head>
 <body id="body" class="">
@@ -185,12 +192,38 @@
         <label for="speed">Spee<span class="u">d</span> (%)</label>
     </div>
 </form>
+<div class="readme">
+    <h2>What this is all about?</h2>
+    <p>
+        This simple web-page is here to help dancer working on a piece of routine, listening to the same piece over and over.
+        Normally this would mean hitting the play button a random time before the dance-routine begins, dance for a couple seconds and going back to the player to reset the music.
+        So to avoid these annoyances, the rikud ('dance' in Hebrew) lets you set -
+    </p>
+    <ul>
+        <li>Start-time and stop-time</li>
+        <li>Pause time before the music begins</li>
+        <li>Speed</li>
+        <li>Loop</li>
+    </ul>
+    <h2>How to set my own music?</h2>
+    <p>
+        In order to play your own music, simply copy-paste any url of mp3, either from the web or from your local computer.
+        If you <a href="index.html" download="rikud" title="Download Player">download</a> the html, simply place a "music.mp3" in the same folder and it will take it by default".
+        Whatever you choose, your choice will be saved for the next time you use this piece of code.
+        <strong>Don't be alarmed that the downloaded version has no graphics</strong>.
+    </p>
+    <h2>Still unclear?</h2>
+    <p>I hope you find it useful, if you have any questions/feedbacks/comments or requests, please don't hesitate to <a href="mailto:odedshr@gmail.com" target="_blank">email</a> me.</p>
+    <h2>Acknowledgements</h2>
+    <p>This piece of code is under "<a href="http://opensource.org/licenses/MIT" target="_blank" title="What is MIT license?">The MIT License</a>", meaning you can do whatever you want with it. it's free, as all intellectual property should be. Enjoy.</p>
+    <p>One last thing - The default great music is '<a href="http://theapplesfunk.bandcamp.com/track/chemical-sniffer" target="_blank">Chemical Sniffer</a>' by <a href="http://www.theapples.net/" title="check out The Apples Website" target="_blank">The Apples</a></p>.
+</div>
 </body>
 <script type="text/javascript" src="rikudMusicPlayer.js"></script>
 <script>
     "using strict";
     (function () {
-        var     defaultFile = "the_apples-chemical_sniffer.mp3";
+        var     defaultFile = "music.mp3";
                 isLoop = false,
                 delayCountDown = false,
                 prettifyTime = function prettifyTime (time) {
