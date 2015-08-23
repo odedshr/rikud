@@ -10,8 +10,9 @@
         },
         addScript = function addScript (src) {
             var tag = document.createElement("script");
+            tag.setAttribute("type","text/javascript");
             tag.src = src;
-            document.getElementsByTagName("head")[0].appendChild(tag)
+            document.getElementsByTagName("head")[0].appendChild(tag);
             return tag;
         },
         getSpeedParams = function getSliderParams (value) {
@@ -117,6 +118,23 @@
 
                     })();
                 };
+
+                if (location.href.indexOf("dev")>-1) {
+                    var dropboxScript = addScript("https://www.dropbox.com/static/api/2/dropins.js");
+                    dropboxScript.id = "dropboxjs";
+                    dropboxScript.setAttribute("data-app-key","gtgt6pn5omtw4qc");
+                    dropboxScript.onload = function onDropBoxLoaded () {
+                        document.getElementById("buttons").appendChild(Dropbox.createChooseButton({
+                            success: function(files) {
+                                alert("Here's the file link: " + files[0].link);
+                            },
+                            cancel: function() {},
+                            linkType: "preview", // or "direct"
+                            multiselect: false, // or true
+                            extensions: ['.mp3', '.m4a', '.wav']
+                        }));
+                    }
+                }
             };
             addStyle ("remote.css");
             addStyle ("lib/jquery-ui/jquery-ui.min.css");
