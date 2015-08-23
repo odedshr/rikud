@@ -113,6 +113,8 @@
     padding-bottom: 0.5rem;
 }
 .remote .button {
+    background-repeat: no-repeat;
+    background-position: center center;
     height: 3rem;
     vertical-align: top;
     width: 3rem;
@@ -126,10 +128,17 @@
 .remote .button.play { background-image: url(images/black_4_audio_play-48.png);}
 .remote .button.reset { background-image: url(images/black_4_audio_step_back-48.png);}
 .remote .file {
-    margin-top: 0.8rem;
+    margin-top: 0.4rem;
     width: 24.9rem;
 }
 
+.remote .file.withBrowse {
+    width: 21rem;
+}
+
+/* ============================================================================================ */
+
+.remote .button.dropbox { background-image: url(images/dropbox.png); }
 /* ============================================================================================ */
 .remote .speed-bar {
     display: inline-block;

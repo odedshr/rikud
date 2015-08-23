@@ -119,22 +119,32 @@
                     })();
                 };
 
-                if (location.href.indexOf("dev")>-1) {
+                (function addDropboxExtension () {
                     var dropboxScript = addScript("https://www.dropbox.com/static/api/2/dropins.js");
                     dropboxScript.id = "dropboxjs";
                     dropboxScript.setAttribute("data-app-key","gtgt6pn5omtw4qc");
                     dropboxScript.onload = function onDropBoxLoaded () {
-                        document.getElementById("buttons").appendChild(Dropbox.createChooseButton({
-                            success: function(files) {
-                                alert("Here's the file link: " + files[0].link);
+                        var dFile = document.getElementById("file"),
+                            button = document.createElement("button"),
+                            dropboxOptions = {
+                                success: function(files) {
+                                    dFile.value = files[0].link;
+                                    dFile.onchange();
+                                },
+                                cancel: function() {},
+                                linkType: "preview", // or "direct"
+                                multiselect: false, // or true
+                                extensions: ['.mp3', '.m4a', '.wav']
                             },
-                            cancel: function() {},
-                            linkType: "preview", // or "direct"
-                            multiselect: false, // or true
-                            extensions: ['.mp3', '.m4a', '.wav']
-                        }));
+                            onDropboxButtonClicked = function () {
+                                Dropbox.choose(dropboxOptions);
+                            };
+                        button.onclick = onDropboxButtonClicked;
+                        button.className = "button dropbox";
+                        dFile.className += " withBrowse";
+                        document.getElementById("buttons").appendChild(button);
                     }
-                }
+                })();
             };
             addStyle ("remote.css");
             addStyle ("lib/jquery-ui/jquery-ui.min.css");
