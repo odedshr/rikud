@@ -12,7 +12,7 @@ This simple web-page is here to help dancer working on a piece of routine, liste
 
 ## How to set my own music?
 
-In order to play your own music, simply copy-paste any url of mp3, either from the web or from your local computer. If you [download](index.html "Download Player") the html, simply place a "music.mp3" in the same folder and it will take it by default". Whatever you choose, your choice will be saved for the next time you use this piece of code. **Don't be alarmed that the downloaded version has no graphics**.
+In order to play your own music, simply copy-paste any **url** of mp3, either from the web or from your local computer (they usually starts with [file:///](file:///)). If you [download](index.html "Download Player") the html, simply place a "music.mp3" in the same folder and it will take it by default". Whatever you choose, your choice will be saved for the next time you use this piece of code. **Don't be alarmed that the downloaded version has no graphics**.
 
 
 ## Still unclear?
