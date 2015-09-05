@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<!--
+TODO:
+3. add dropbox
+5. add youtube
+6. replace IDs
+7. access keys
+-->
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>Rikud: Music Player for dancers</title>
+    <style>
+        body {
+            font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .error {
+            color: maroon;
+        }
+
+        .u {
+            text-decoration: underline;
+        }
+
+        .title {
+            color: #333;
+            clear: both;
+            display: block;
+            text-align:left;
+            text-decoration: none;
+            line-height:1.2rem;
+            margin: 0;
+            padding: 0.3rem 0.5rem;
+        }
+        .subtitle {
+            font-size: 1rem;
+        }
+        .hidden {
+            display: none;
+        }
+
+        .persistent:visited {
+            color: blue;
+        }
+        /* ============================================================================================ */
+        .page.intro,
+        .page.loading {
+            font-size: 2rem;
+            margin: 25% auto;
+            width: 49rem;
+            line-height: 1rem;
+            letter-spacing: 0.15rem;
+        }
+        @keyframes fade-in {
+            from { opacity: 0;}
+            to { opacity: 1;}
+        }
+
+        @keyframes fade-out {
+            0% { opacity: 1;}
+            100% { opacity: 0;}
+        }
+
+        .fade-in {
+            animation-name: fade-in;
+            animation-duration: 2s;
+            animation-timing-function: ease-out;
+            -webkit-animation-fill-mode: forwards; /* Chrome, Safari, Opera */
+            animation-fill-mode: forwards;
+        }
+        .fade-out {
+            animation-name: fade-out;
+            animation-duration: 1s;
+            animation-timing-function: ease-in;
+            -webkit-animation-fill-mode: forwards; /* Chrome, Safari, Opera */
+            animation-fill-mode: forwards;
+        }
+        /* ============================================================================================ */
+        .load-bar {
+            height: 0.5rem;
+            width: 100%;
+        }
+        .load-bar-progress:empty {
+            background-color: #3498db;
+            border-bottom:0.1rem solid #34495e;
+            box-shadow: 0 0.1rem 0.2rem #999;
+            height:0.1rem;
+            width: 0;
+        }
+        .load-bar-progress:not(:empty) {
+            color: #34495e;
+            font-family: monospace;
+            font-size: 1rem;
+            margin: 0.5rem;
+            width: 10rem;
+        }
+
+        .link-download {
+            display: none;
+        }
+        /* ============================================================================================ */
+        .cassette-label {
+            margin: 0;
+            text-align:center;
+        }
+        .controls {
+            margin: 0 auto;
+            width: 35rem;
+        }
+
+        .buttons {
+            list-style:none;
+            margin: 0 auto 1rem;
+            padding: 0;
+            text-align: center;
+        }
+
+        .buttons li{
+            display: inline-block;
+            margin:0;
+        }
+
+        .buttons input,
+        .button {
+            border: 0.1rem solid lightblue;
+            border-radius:0.5rem;
+            font-size:1.1rem;
+            outline: none;
+            height: 32px;
+        }
+        .button {
+            background-color: whitesmoke;
+            cursor: pointer;
+            width: 64px;
+        }
+        .button.dropbox,
+        .buton.url {
+            display: none;
+        }
+
+        button.pressed,
+        button:active {
+            background-color: lightblue;
+        }
+
+        button.pressed label,
+        button:active label {
+            color: white;
+        }
+        .countdown {
+            color: black;
+            -webkit-text-fill-color: #c0392b;
+            -webkit-text-stroke-width: 1px;
+            -webkit-text-stroke-color: black;
+            font-size: 30rem;
+            font-family: 'Walter Turncoat', cursive;
+            line-height: 0;
+            position: absolute;
+            text-align: center;
+            top: 15rem;
+            width: 100%;
+            z-index: 99;
+        }
+
+        .wheel-wrapper {
+            display:none;
+        }
+        /* ============================================================================================ */
+        .controls label {
+            display: block;
+            font-size:0.7rem;
+            text-align: center;
+        }
+        .controls .lblButton {
+            color: #333;
+            cursor: pointer;
+        }
+        .controls .lblField {
+            color: #999;
+        }
+        .controls input[type="number"], .position {
+            border: none;
+            border-bottom: 0.1rem dashed dimgray;
+            text-align: center;
+            width: 7.5rem;
+            font-size: 2rem;
+        }
+
+        .progress-control {
+            list-style: none;
+            margin: 0.5rem 0;
+            padding: 0;
+        }
+        .progress-control li{
+            display: inline-block;
+            vertical-align: top;
+            text-align: center;
+            width:8.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+        }
+
+        .speedFieldRow {
+            display: inline-block;
+            text-align:center;
+        }
+
+        /* ============================================================================================ */
+        /*.progress-bar.ui-widget-content { background: #34495e; }*/
+        .progress-bar .ui-slider-range { background: #3498db; }
+        .controls .progress-bar.ui-slider .ui-slider-handle,
+        .controls .progress-bar.ui-slider .ui-slider-handle:hover{
+            color: #34495e;
+        }
+        .controls .ui-slider .ui-slider-handle {
+            cursor: pointer;
+            border-color: #666;
+            line-height: 1.1rem;
+            width: 0.6rem;
+        }
+        .progress-bar .progress-current {
+            background: #34495e; /* yellow: #ebe064; /*#2980b9;*/
+            top: -0.02rem;
+            /* margin-left: -.6em; */
+            position: absolute;
+            z-index: 2;
+            width: 0;
+            height: 0.8em;
+            cursor: default;
+            -ms-touch-action: none;
+            touch-action: none;
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+        /* ============================================================================================ */
+        .speed-bar {
+            display: inline-block;
+            margin: 1rem 1rem 0 0;
+            vertical-align: top;
+            width: 25.5rem
+        }
+        .speed-bar .ui-slider-range { background: #34495e;}
+        /* ============================================================================================ */
+        /* Overlays */
+        .ui-widget-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .ui-slider {
+            position: relative;
+            text-align: left;
+        }
+        .ui-slider .ui-slider-handle {
+            position: absolute;
+            z-index: 2;
+            width: 1.2em;
+            height: 1.2em;
+            cursor: default;
+            -ms-touch-action: none;
+            touch-action: none;
+        }
+        .ui-slider .ui-slider-range {
+            position: absolute;
+            z-index: 1;
+            font-size: .7em;
+            display: block;
+            border: 0;
+            background-position: 0 0;
+        }
+
+        /* support: IE8 - See #6727 */
+        .ui-slider.ui-state-disabled .ui-slider-handle,
+        .ui-slider.ui-state-disabled .ui-slider-range {
+            filter: inherit;
+        }
+
+        .ui-slider-horizontal {
+            height: .8em;
+        }
+        .ui-slider-horizontal .ui-slider-handle {
+            top: -.3em;
+            margin-left: -.6em;
+        }
+        .ui-slider-horizontal .ui-slider-range {
+            top: 0;
+            height: 100%;
+        }
+        .ui-slider-horizontal .ui-slider-range-min {
+            left: 0;
+        }
+        .ui-slider-horizontal .ui-slider-range-max {
+            right: 0;
+        }
+
+        .ui-slider-vertical {
+            width: .8em;
+            height: 100px;
+        }
+        .ui-slider-vertical .ui-slider-handle {
+            left: -.3em;
+            margin-left: 0;
+            margin-bottom: -.6em;
+        }
+        .ui-slider-vertical .ui-slider-range {
+            left: 0;
+            width: 100%;
+        }
+        .ui-slider-vertical .ui-slider-range-min {
+            bottom: 0;
+        }
+        .ui-slider-vertical .ui-slider-range-max {
+            top: 0;
+        }
+
+        /* Component containers
+        ----------------------------------*/
+        .ui-widget {
+            font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;
+            font-size: 1.1em;
+        }
+        .ui-widget .ui-widget {
+            font-size: 1em;
+        }
+        .ui-widget input,
+        .ui-widget select,
+        .ui-widget textarea,
+        .ui-widget button {
+            font-family: Trebuchet MS,Tahoma,Verdana,Arial,sans-serif;
+            font-size: 1em;
+        }
+        .ui-widget-content {
+            border: 1px solid #dddddd;
+            background: #eeeeee 50% top repeat-x;
+            color: #333333;
+        }
+        .ui-widget-content a {
+            color: #333333;
+        }
+        .ui-widget-header {
+            border: 1px solid #e78f08;
+            background: #f6a828 50% 50% repeat-x;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        .ui-widget-header a {
+            color: #ffffff;
+        }
+
+        /* Interaction states
+        ----------------------------------*/
+        .ui-state-default,
+        .ui-widget-content .ui-state-default,
+        .ui-widget-header .ui-state-default {
+            border: 1px solid #cccccc;
+            background: #f6f6f6 50% 50% repeat-x;
+            font-weight: bold;
+            color: #1c94c4;
+        }
+        .ui-state-default a,
+        .ui-state-default a:link,
+        .ui-state-default a:visited {
+            color: #1c94c4;
+            text-decoration: none;
+        }
+        .ui-state-hover,
+        .ui-widget-content .ui-state-hover,
+        .ui-widget-header .ui-state-hover,
+        .ui-state-focus,
+        .ui-widget-content .ui-state-focus,
+        .ui-widget-header .ui-state-focus {
+            border: 1px solid #fbcb09;
+            background: #fdf5ce 50% 50% repeat-x;
+            font-weight: bold;
+            color: #c77405;
+        }
+        .ui-state-hover a,
+        .ui-state-hover a:hover,
+        .ui-state-hover a:link,
+        .ui-state-hover a:visited,
+        .ui-state-focus a,
+        .ui-state-focus a:hover,
+        .ui-state-focus a:link,
+        .ui-state-focus a:visited {
+            color: #c77405;
+            text-decoration: none;
+        }
+        .ui-state-active,
+        .ui-widget-content .ui-state-active,
+        .ui-widget-header .ui-state-active {
+            border: 1px solid #fbd850;
+            background: #ffffff 50% 50% repeat-x;
+            font-weight: bold;
+            color: #eb8f00;
+        }
+        .ui-state-active a,
+        .ui-state-active a:link,
+        .ui-state-active a:visited {
+            color: #eb8f00;
+            text-decoration: none;
+        }
+
+        /* Interaction Cues
+        ----------------------------------*/
+        .ui-state-highlight,
+        .ui-widget-content .ui-state-highlight,
+        .ui-widget-header .ui-state-highlight {
+            border: 1px solid #fed22f;
+            background: #ffe45c 50% top repeat-x;
+            color: #363636;
+        }
+        .ui-state-highlight a,
+        .ui-widget-content .ui-state-highlight a,
+        .ui-widget-header .ui-state-highlight a {
+            color: #363636;
+        }
+        .ui-state-error,
+        .ui-widget-content .ui-state-error,
+        .ui-widget-header .ui-state-error {
+            border: 1px solid #cd0a0a;
+            background: #b81900 50% 50% repeat;
+            color: #ffffff;
+        }
+        .ui-state-error a,
+        .ui-widget-content .ui-state-error a,
+        .ui-widget-header .ui-state-error a {
+            color: #ffffff;
+        }
+        .ui-state-error-text,
+        .ui-widget-content .ui-state-error-text,
+        .ui-widget-header .ui-state-error-text {
+            color: #ffffff;
+        }
+        .ui-priority-primary,
+        .ui-widget-content .ui-priority-primary,
+        .ui-widget-header .ui-priority-primary {
+            font-weight: bold;
+        }
+        .ui-priority-secondary,
+        .ui-widget-content .ui-priority-secondary,
+        .ui-widget-header .ui-priority-secondary {
+            opacity: .7;
+            filter:Alpha(Opacity=70); /* support: IE8 */
+            font-weight: normal;
+        }
+        .ui-state-disabled,
+        .ui-widget-content .ui-state-disabled,
+        .ui-widget-header .ui-state-disabled {
+            opacity: .35;
+            filter:Alpha(Opacity=35); /* support: IE8 */
+            background-image: none;
+        }
+        .ui-state-disabled .ui-icon {
+            filter:Alpha(Opacity=35); /* support: IE8 - See #6059 */
+        }
+        /* ============================================================================================ */
+        .readme {
+            font-size: 0.8rem;
+            width: 34rem;
+            margin: 2rem auto 0;
+            border-top: 0.3rem double #999;
+            color: #666;
+            line-height: 1.5rem;
+        }
+    </style>
+    <link rel="stylesheet" href="graphics.css" media="screen,print" />
+</head>
+<body id="body" class="">
+<noscript class="error">
+    <h2>JavaScript is disabled in your browser. How do you expect FileDrop to work?</h2>
+</noscript>
+<div id="loadBar" class="load-bar">
+    <div id="loadBarProgress" class="load-bar-progress"></div>
+</div>
+<div id="pageLoading" class="page loading">
+    <p>Loading Rikud ...</p>
+</div>
+<div id="pageIntro" class="page intro hidden">
+    <p>Rikud is a music player for dancers</p>
+    <p>You start by selecting a <a href="#" id="introSelectFile" class="persistent">music file</a> or a <a href="#" id="introSelectURL" class="persistent">URL</a>.</p>
+</div>
+<div id="pageMain" class="page main hidden">
+    <a href="index.html" id="linkDownload" accesskey="d" download="rikud" class="link-download" title="Download Player"><span>Download</span></a>
+
+    <audio id="audio" preload="none" type="audio/mpeg"></audio>
+    <input type="file" id="browseFile" name="browseFile" accept="audio/*" class="hidden" />
+
+    <div id="countdown" class="countdown"></div>
+    <header class="visuals">
+        <div class="progress">
+            <div class="cassette-parts cassette-back"></div>
+            <div class="wheel-animation wheel-animation-left"></div>
+            <div class="wheel-animation wheel-animation-right"></div>
+            <div class="cassette-parts cassette-cover"></div>
+            <h1 class="cassette-label"><a href="https://odedshr.github.io/rikud" target="_blank" class="title">Rikud</a><span class="subtitle" id="filename"></span></h1>
+            <div class="wheel-wrapper"><div id="wheel-left" class="wheel"></div><div class="wheel-height-keeper"></div></div>
+            <div class="wheel-wrapper"><div id="wheel-right" class="wheel"></div><div class="wheel-height-keeper"></div></div>
+        </div>
+    </header>
+
+    <form id="controls" class="controls">
+        <div id="buttons" class="buttons">
+            <button id="btnReset" name="btnReset" title="Reset" accesskey="r" class="button reset"><label class="lblButton" for="btnReset"><span class="u">R</span>eset</label></button>
+            <button id="btnPlay"  name="btnPlay" title="Play" accesskey="p" class="button play"><label class="lblButton" for="btnPlay"><span class="u">P</span>lay</label></button>
+            <button id="btnLoop"  name="btnLoop" title="Loop" accesskey="l" class="button loop"><label class="lblButton" for="btnLoop"> <span class="u">L</span>oop</label></button>
+            <button id="btnEject" name="btnEject" title="Select File" accesskey="f" class="button eject"><label class="lblButton" for="btnEject"><span class="u">F</span>ile</label></button>
+            <button id="btnURL" name="btnURL" title="Select a URL" accesskey="x" class="button url"><label class="lblButton" for="btnURL"><span class="u">U</span>RL</label></button>
+            <button id="btnDropbox" name="btnDropbox" title="Select File from dropbox" accesskey="x" class="button dropbox"><label class="lblButton" for="btnDropbox">Dropbo<span class="u">x</span></label></button>
+        </div>
+
+        <div id="progressbar" class="progress-bar"></div>
+
+        <ul class="progress-control">
+            <li>
+                <input type="number" name="delay" id="delay" placeholder="(sec)" min="0" step="0.01"/>
+                <label for="end" class="lblField"><span class="u">W</span>ait before start</label>
+            </li>
+            <li>
+                <input type="number" name="start" id="start" placeholder="(sec)" min="0" step="0.01"/>
+                <label for="start" class="lblField"><span class="u">S</span>tart</label>
+            </li>
+            <li id="progress">
+                <input name="currentPosition" id="currentPosition" type="text" class="position" readonly="readonly" />
+                <label for="currentPosition" class="lblField">Current</label>
+            </li>
+            <li>
+                <input type="number" name="end" id="end" placeholder="(sec)" min="0" step="0.01" />
+                <label for="end" class="lblField"><span class="u">E</span>nd</label>
+            </li>
+        </ul>
+        <div id="speedBar" class="speed-bar"></div>
+        <div class="speedFieldRow">
+            <input type="number" name="speed" id="speed" class="speed" min="50" max="110" value="100"/>
+            <label for="speed" class="lblField">Spee<span class="u">d</span> (%)</label>
+        </div>
+    </form>
+    <div class="readme">
+        <h2>What this is all about?</h2>
+        <p>
+            This simple web-page is here to help dancer working on a piece of routine, listening to the same piece over and over.
+            Normally this would mean hitting the play button a random time before the dance-routine begins, dance for a couple seconds and going back to the player to reset the music.
+            So to avoid these annoyances, the rikud ('dance' in Hebrew) lets you set -
+        </p>
+        <ul>
+            <li>Start-time and stop-time</li>
+            <li>Pause time before the music begins</li>
+            <li>Speed</li>
+            <li>Loop</li>
+        </ul>
+        <p>I hope you find it useful, if you have any questions/feedbacks/comments or requests, please don't hesitate to <a href="mailto:odedshr@gmail.com" target="_blank">email</a> me.</p>
+        <h2>Acknowledgements</h2>
+        <p>This piece of code is under "<a href="http://opensource.org/licenses/MIT" target="_blank" title="What is MIT license?">The MIT License</a>", meaning you can do whatever you want with it. it's free, as all intellectual property should be. Enjoy.</p>
+    </div>
+</div>
+
+</body>
+<script>
+    "using strict";
+    !function () {
+        var
+        JS = (function JS () {
+            var vars = {
+                isLoop  : false,
+                isPlaying : false,
+                isLocal : (location.href.indexOf("file://")==0),
+                sYoutubeDownloaderDomain : "https://dl-yt.herokuapp.com/", //"http://localhost:5000/",
+                isYoutubeEnabled: false
+            },
+            addScript = function addScript (src) {
+                var tag = document.createElement("script");
+                tag.setAttribute("type","text/javascript");
+                tag.src = src;
+                document.getElementsByTagName("head")[0].appendChild(tag);
+                return tag;
+            },
+            dispatchEvent = function dispatchEvent (eventName, content) {
+                document.dispatchEvent(new CustomEvent(eventName, {detail: content}));
+            },
+            getEventDispatcher = function getEventDispatcher (eventName) {
+                return function (evt) {
+                    dispatchEvent(eventName,evt);
+                    return false;
+                };
+            },
+            addEventListener = function setEventListener (eventName, method) {
+                document.addEventListener(eventName,method);
+            },
+            setEventAndDefaultMethod = function setEventAndDefaultMethod (eventName, method) {
+                addEventListener(eventName,method);
+                return getEventDispatcher(eventName);
+            },
+            keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+            _arrayBufferToBase64 = function _arrayBufferToBase64( buffer ) {
+                var binary = '';
+                var bytes = new Uint8Array( buffer );
+                var len = bytes.byteLength;
+                for (var i = 0; i < len; i++) {
+                    binary += String.fromCharCode( bytes[ i ] );
+                }
+                return window.btoa( binary );
+            }
+            onErrorLoadingFile = function onErrorLoadingFile (evt) {
+                switch(evt.target.error.code) {
+                    case evt.target.error.NOT_FOUND_ERR:
+                        alert('File Not Found!');
+                        break;
+                    case evt.target.error.NOT_READABLE_ERR:
+                        alert('File is not readable');
+                        break;
+                    case evt.target.error.ABORT_ERR:
+                        break; // noop
+                    default:
+                        alert('An error occurred reading this file.');
+                }
+            },
+            uploadFile = function uploadFile (evt) {
+                var file = (evt.detail ? evt.detail : evt).target.files[0],
+                    reader = new FileReader();
+                reader.onerror = setEventAndDefaultMethod("file-error",onErrorLoadingFile);
+                reader.onprogress = getEventDispatcher("file-loading");
+                reader.onload = function(fileLoadedEvent){
+                    dispatchEvent("file-loaded",{
+                        name: file.name,
+                        data: fileLoadedEvent.target.result
+                    });
+                };
+                reader.onerror = function (err) { alert ("error "+err); };
+
+                reader.readAsDataURL(file);
+            },
+            saveFile = function saveFile(evt) {
+              try {
+                  localStorage.setItem("music",JSON.stringify(evt.detail));
+              } catch (err) {
+                  if (err.name=="QuotaExceededError") {
+                      if (evt.detail.onQuotaExceededError) {
+                          evt.detail.onQuotaExceededError();
+                          return;
+                      } else {
+                          dispatchEvent("alert", "File too big to be cached, bou can still play it");
+                      }
+                  } else {
+                    dispatchEvent("alert",err.message);
+                  }
+                  localStorage.removeItem("music");
+              }
+            },
+            onLoop = function onLoop () {
+                this.isLoop = !this.isLoop;
+                dispatchEvent("loop-"+this.isLoop);
+            },
+            onInterval = function onInterval () {
+                if (this.isPlaying) {
+                    dispatchEvent("playing");
+                }
+            },
+            attemptToLoadFromStorage = function attemptToLoadFromStorage () {
+                if (localStorage) {
+                    var file = localStorage.getItem("music");
+                    if (file) {
+                        window.setTimeout(function () {
+                            dispatchEvent("file-loaded",JSON.parse(file));
+                        },0);
+                        return;
+                    }
+                }
+                dispatchEvent("no-file");
+            },
+            dropboxOptions = {
+                success: function(files) {
+                    console.log(JSON.stringify(files[0]));
+                },
+                cancel: function() {},
+                linkType: "preview", // or "direct"
+                multiselect: false, // or true
+                extensions: ['.mp3', '.m4a', '.wav']
+            },
+            selectFileFromDropbox = function selectFileFromDropbox () {
+                Dropbox && Dropbox.choose(dropboxOptions);
+                return false;
+            },
+            init = function init () {
+                addEventListener("dropbox",selectFileFromDropbox.bind(vars));
+                addEventListener("file-selected",uploadFile.bind(vars));
+                addEventListener("file-loaded",saveFile.bind(vars));
+                addEventListener("loop",onLoop.bind(vars));
+                window.setInterval(onInterval.bind(vars), 1);
+
+                attemptToLoadFromStorage();
+                if (!this.isLocal) {
+                    var dropboxScript = addScript("https://www.dropbox.com/static/api/2/dropins.js");
+                    dropboxScript.id = "dropboxjs";
+                    dropboxScript.setAttribute("data-app-key","gtgt6pn5omtw4qc");
+                }
+
+                $.get(this.sYoutubeDownloaderDomain+"ping",function didGetPing(response){
+                    vars.isYoutubeEnabled = (response=="pong");
+                });
+            }
+            ;
+            vars.setEventAndDefaultMethod = setEventAndDefaultMethod.bind(vars);
+            vars.getEventDispatcher = getEventDispatcher.bind(vars);
+            vars.addEventListener = addEventListener.bind(vars);
+            vars.dispatchEvent = dispatchEvent.bind(vars);
+            vars._arrayBufferToBase64 = _arrayBufferToBase64.bind(vars);
+            window.onload = setEventAndDefaultMethod ("onAppReady",init.bind(vars));
+            return vars;
+        })(),
+
+        JSUI = (function JSUI() {
+            var dElms = {},
+                delayCountDown = false,
+                defaultFileName = "Music Player for Dancers",
+                sYoutubeDownloader = JS.sYoutubeDownloaderDomain + "?url=",
+                minWheelSize = 125, maxWheelSize = 287, maxWheelExpandSize = (maxWheelSize - minWheelSize),
+            hasClass = function hasClass (dElm, className) {
+                return dElm && (dElm.className.split(" ").indexOf(className)>-1);
+            },
+            toggleClass = function toggleClass (dElm, className,isAdd,isRemove) {
+                var classes = dElm.className.split(" "),
+                    isAlreadyExists = (classes.indexOf(className)!=-1);
+                if (isAlreadyExists) {
+                    (isRemove || (!isAdd && !isRemove)) && classes.splice(classes.indexOf(className),1);
+                } else {
+                    (isAdd || (!isAdd && !isRemove)) && classes.push(className)
+                }
+                dElm.className = classes.join(" ");
+            },
+            addClass = function addClass (dElm, className) {
+                toggleClass(dElm,className,true,false);
+            },
+            removeClass = function removeClass (dElm, className) {
+                toggleClass(dElm,className,false,true);
+            },
+            prettifyTime = function prettifyTime (time) {
+                return ((time > 60) ? Math.floor(time/60)+":" : "") +(time % 60).toFixed(2);
+            },
+            prettifyBytes = function prettifyBytes (bytes) {
+                var suffix = " Bytes";
+                if (bytes > 9999) {
+                    if (bytes > 999999) {
+                        suffix = " MBytes";
+                        bytes /= 1000000;
+                    } else {
+                        suffix = " KBytes";
+                        bytes /= 1000;
+                    }
+                }
+                return bytes.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + suffix;
+            },
+            animate = function (dElm, animationClass, duration, callback) {
+                addClass(dElm, animationClass);
+                window.setTimeout( function animated () {
+                    removeClass(dElm, animationClass);
+                    callback && callback();
+                },duration* 1000);
+            },
+            fadeIn = function (dElm, callback) {
+                removeClass(dElm, "hidden");
+                animate (dElm, "fade-in",2,function fadedIn () {
+                    callback && callback();
+                });
+            },
+            fadeOut = function (dElm, callback) {
+                animate (dElm, "fade-out",1,function fadedOut () {
+                    addClass(dElm, "hidden");
+                    callback && callback();
+                });
+            },
+            onNotify = function onNotify (evt) {
+                console.log (evt.detail);
+            },
+            onAlert = function onAlert (evt) {
+                alert (evt.detail);
+            },
+            onEject = function onEject () {
+                dElms.dfBrowseFile.click();
+                return false;
+            },
+            browseFileChanged = function browseFileChanged () {
+                return false;
+            },
+            onNoFileLoaded = function onNoFileLoaded () {
+                var that = this;
+                fadeOut((hasClass(this.dPageMain,"hidden") ? this.dPageLoading : this.dPageMain), function afterFaded () {
+                    fadeIn (that.dPageIntro);
+                });
+            },
+            onFileLoading = function onFileUploading (evt) {
+                if (evt.detail.lengthComputable) {
+                    dElms.dLoadProgressBar.style.width = Math.min(100,Math.round((evt.detail.loaded / evt.detail.total) * 100)) + "%";
+                }
+            },
+            onFileLoaded = function onFileLoaded (evt) {
+                var filename = evt.detail.name,
+                    that = this;
+                this.dFilename.innerHTML = filename ? filename.replace(/\.mp3/,"") : defaultFileName;
+                this.dAudio.src = evt.detail.data;
+                this.dAudio.play();
+                this.dAudio.pause();
+                this.dLoadProgressBar.style.width = "";
+                if (hasClass(this.dPageMain,"hidden")) {
+                    fadeOut((hasClass(this.dPageIntro,"hidden") ? this.dPageLoading : this.dPageIntro), function afterFaded () {
+                        fadeIn (that.dPageMain);
+                    });
+                }
+            },
+            validateURL = function validateURL (url) {
+                return /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
+            },
+            downloadFile = function downloadFile (url) {
+                var oReq = new XMLHttpRequest();
+                oReq.open("GET", url, true);
+                oReq.responseType = "arraybuffer";
+                oReq.onprogress = function (oEvent) {
+                    dElms.dLoadProgressBar.innerHTML = isNaN(oEvent.loaded) ? 'Loading...' : prettifyBytes(+oEvent.loaded) + ' loaded';
+                };
+                oReq.onload = function (oEvent) {
+                    dElms.dLoadProgressBar.innerHTML = "";
+                    var arrayBuffer = oReq.response; // Note: not oReq.responseText
+                    if (arrayBuffer) {
+                        var encodedData = "data:audio/mpeg;base64,"+ JS._arrayBufferToBase64(arrayBuffer);
+                        JS.dispatchEvent("file-loaded",{ name: "song from web",
+                                                         data: encodedData,
+                                                        onQuotaExceededError: function () {
+                                                            if (confirm("File to big to be cached (you can still play it).\nSave it locally for future use?")) {
+                                                                saveYouTubeFileLocally(arrayBuffer);
+                                                            }
+                                                        }
+                        });
+                    }
+                };
+
+                oReq.send(null);
+                return false;
+            },
+            saveYouTubeFileLocally = function saveYouTubeFileLocally (arrayBuffer) {
+                var saveByteArray = (function () {
+                    var a = document.createElement("a");
+                    document.body.appendChild(a);
+                    a.style = "display: none";
+                    return function (data, name) {
+                        var blob = new Blob(data, {type: "octet/stream"}),
+                                url = window.URL.createObjectURL(blob);
+                        a.href = url;
+                        a.download = name;
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    };
+                }());
+
+                saveByteArray([arrayBuffer], 'rikud.mp3');
+            },
+            onURL = function onURL () {
+                var url = prompt ("enter a URL for an online music file");
+                if (url) {
+                    if (validateURL(url)) {
+                        var extractedName = "song from the web";
+                        if ((url.indexOf("dropbox")>-1) && url.indexOf("raw=1")==-1) {
+                            url = (url.indexOf("?")==-1) ? url+"?raw=1" : url.replace(/\?/,"?raw=1&");
+                            return downloadFile(url);
+                        } else if (url.indexOf("youtube.com") || url.indexOf("youtu.be")) {
+                            if (JS.isYoutubeEnabled) {
+                                return downloadFile(sYoutubeDownloader + url);
+                            } else {
+                                alert ("Unable to download from youtube at the moment. Please download the file to your computer first");
+                            }
+
+                            return false;
+                        }
+                        JS.dispatchEvent("file-loaded",{ name: extractedName, data: url});
+                    } else {
+                        alert ("bad URL provided");
+                    }
+                }
+
+                return false;
+            },
+            onAudioError = function onAudioError (ev) {
+                if (dElms.dAudio.error.code == 4) {
+                    alert ("something went wrong\nI think I'm missing the audio file....");
+                } else {
+                    alert ("oops! something went wrong");
+                }
+                JS.dispatchEvent("stop");
+            },
+            onAudioLoaded = function onAudioLoaded () {
+                if (+dElms.dfEnd.value==0) {
+                    dElms.dfEnd.value = dElms.dAudio.duration.toFixed(2);
+                }
+            },
+
+            onPlayPausePressed = function onPlayPausePressed () {
+                JS.isPlaying = !JS.isPlaying;
+                JS.dispatchEvent(JS.isPlaying ? "play" : "pause");
+            },
+            onPlay = function onPlay () {
+                this.dbPlay.className += " pressed";
+
+                var delay = + this.dfDelay.value,
+                    that = this;
+                if (this.dAudio.currentTime == (+this.dfStart.value) && delay) {
+                    if (delayCountDown) { clearInterval(this.delayCountDown); }
+                    this.delayCountDown = window.setInterval(function () {
+                        that.dCountDown.innerHTML = "" + (--delay);
+                        if (!delay || !JS.isPlaying) {
+                            JS.isPlaying && that.dAudio.play();
+                            clearInterval(that.delayCountDown);
+                            delete (that.delayCountDown);
+                            that.dCountDown.innerHTML = "";
+                        }
+                    }, 1000);
+                } else {
+                    this.dAudio.play();
+                }
+            },
+            onReset = function onReset () {
+                var time = + this.dfStart.value;
+                this.dAudio.currentTime = time;
+                updateCurrentPositionField.call(this,time);
+                updateProgress.call(this)
+            },
+            onPause = function onPause () {
+                this.dAudio.pause();
+                removeClass(this.dbPlay, "pressed");
+            },
+            onStop = function onStop () {
+                JS.dispatchEvent("reset");
+                JS.dispatchEvent("pause");
+            },
+            onLoop = function onLoop () {
+                toggleClass(this.dbLoop, "pressed");
+            },
+            updateCurrentPositionField = function updateCurrentPositionField(time) {
+                this.dCurrentPosition.value = time.toFixed(2);
+                this.dCurrentPosition.title = prettifyTime(time);
+            },
+            onPlaying = function onPlaying () {
+                var end = +this.dfEnd.value,
+                    time = this.dAudio.currentTime;
+                updateCurrentPositionField.call(this, time);
+                if (end && end < time) {
+                    JS.dispatchEvent("stop");
+                    if (JS.isLoop) {
+                        JS.dispatchEvent("play");
+                    }
+                }
+            },
+            onKeyUp = function onKeyUp (ev) {
+                switch (String.fromCharCode(ev.which || ev.keyCode)) {
+                    case "f":
+                    case "F":
+                        JS.dispatchEvent("eject");
+                        break;
+                    case "r":
+                    case "R":
+                        JS.dispatchEvent("reset");
+                        break;
+                    case "p":
+                    case "P":
+                        JS.dispatchEvent("play");
+                        break;
+                    case "l":
+                    case "L":
+                        JS.dispatchEvent("loop");
+                        break;
+                    case "w":
+                    case "W":
+                        this.dfDelay.focus();
+                        break;
+                    case "s":
+                    case "S":
+                        this.dfStart.focus();
+                        break;
+                    case "e":
+                    case "E":
+                        this.dfEnd.focus();
+                        break;
+                    case "d":
+                    case "D":
+                        this.dfSpeed.focus();
+                        break;
+                    case "x":
+                    case "X":
+                        JS.dispatchEvent("dropbox");
+                        break;
+                }
+            },
+            //////////////////////////////////////
+            getSpeedParams = function getSliderParams (value) {
+                return {
+                    range: "min",
+                    min: 50,
+                    max: 110,
+                    value: value,
+                    slide: onSpeedSlide.bind(dElms)
+                }
+            },
+            onSpeedSlide = function onSlide ( event, ui ) {
+                var value = ui.value;
+                this.dAudio.playbackRate = value/100;
+                this.dfSpeed.value = ui.value;
+            },
+            refreshSpeedBar = function refreshSpeedBar () {
+                var value = this.dfSpeed.value;
+                this.dAudio.playbackRate = value/100;
+                this.jSpeedBar.slider(getSpeedParams(value));
+            },
+            onSpeed = function onSpeed (ev) {
+                var value = +ev.detail.target.value;
+                this.dAudio.playbackRate = (value)/100;
+                // speedbar updated itself using refreshSpeedBar is send it event using onSpeedSlide
+            },
+            ///////////////////////////////////
+            setObjectSize = function setObjectSize (obj,size) {
+                obj.style.height= (size/1)+"px";
+                obj.style.width= (size/1)+"px";
+            },
+            refreshCurrentPositionVisual = function refreshCurrentPositionVisual() {
+                var progressbarWidth = +this.jProgressBar.width(),
+                    startPosition = (+this.dfStart.value/+this.dAudio.duration * progressbarWidth),
+                    currentPositionBiased= Math.max ((this.dAudio.currentTime/this.dAudio.duration*progressbarWidth)-startPosition, 0);
+                this.jCurrentProgress.css("left",startPosition+"px").width ((currentPositionBiased)+"px");
+            },
+            updateProgress = function updateProgress () {
+                var currentProgress= this.dAudio.currentTime/this.dAudio.duration;
+                refreshCurrentPositionVisual.call(this);
+                setObjectSize(this.dLeftWheel, minWheelSize + (currentProgress)*(maxWheelExpandSize) );
+                setObjectSize(this.dRightWheel, maxWheelSize - (currentProgress)*(maxWheelExpandSize) );
+            },
+            onProgressSlide = function onProgressSlide ( event, ui ) {
+                this.dfStart.value = (ui.values[ 0 ] * this.dAudio.duration / 100).toFixed(2);
+                this.dfEnd.value = (ui.values[ 1 ]  * this.dAudio.duration / 100).toFixed(2);
+                refreshCurrentPositionVisual.call(this);
+            },
+            getProgressBarParams = function getProgressBarParams (start, end) {
+                return {
+                    range: true,
+                    values: [start,end],
+                    slide: onProgressSlide.bind(dElms)
+                };
+            },
+            refreshProgressBar = function refreshProgressBar () {
+                var startValue = this.dfStart.value ? +this.dfStart.value*100/this.dAudio.duration : 0,
+                        endValue = this.dfEnd.value ? +this.dfEnd.value*100/this.dAudio.duration : 100;
+                this.jCurrentProgress && this.jCurrentProgress.remove();
+                this.jCurrentProgress = $('<span class="progress-current"id="progress-current"></span>');
+                this.jProgressBar.slider(getProgressBarParams(startValue,endValue));
+                document.querySelector("#progressbar .ui-slider-handle").innerHTML="[";
+                document.querySelector("#progressbar .ui-slider-handle:last-child").innerHTML="]";
+                this.jProgressBar.prepend(this.jCurrentProgress);
+                refreshCurrentPositionVisual.call(this);
+            },
+            startWheelAnimation = function startWheelAnimation () {
+                this.jWheelAnimation.addClass("wheel-animation-play");
+            },
+            stopWheelAnimation = function stopWheelAnimation () {
+                this.jWheelAnimation.removeClass("wheel-animation-play");
+            },
+            init = function init () {
+                this.dfBrowseFile.onchange = JS.setEventAndDefaultMethod("file-selected",browseFileChanged.bind(dElms));
+                this.dAudio.onerror = JS.setEventAndDefaultMethod("audio-error", onAudioError.bind(dElms));
+                this.dAudio.oncanplaythrough = JS.setEventAndDefaultMethod("audio-loaded", onAudioLoaded.bind(dElms));
+
+                this.dbReset.onclick = JS.setEventAndDefaultMethod("reset", onReset.bind(dElms));
+                this.dbPlay.onclick = JS.setEventAndDefaultMethod("playPausedPressed", onPlayPausePressed.bind(dElms));
+                this.dbLoop.onclick = JS.setEventAndDefaultMethod("loop", onLoop.bind(dElms));
+                this.dbEject.onclick = JS.setEventAndDefaultMethod("eject", onEject.bind(dElms));
+                this.dURL.onclick = JS.setEventAndDefaultMethod("url", onURL.bind(dElms));
+
+                JS.setEventAndDefaultMethod("play", onPlay.bind(dElms));
+                JS.setEventAndDefaultMethod("stop", onStop.bind(dElms)); // stop = reset+pause
+                JS.setEventAndDefaultMethod("pause", onPause.bind(dElms));
+                JS.setEventAndDefaultMethod("playing", onPlaying.bind(dElms));
+                JS.setEventAndDefaultMethod("notify", onNotify.bind(dElms));
+                JS.setEventAndDefaultMethod("alert", onAlert.bind(dElms));
+                document.onkeyup = onKeyUp.bind(dElms);
+
+                //wheel animation
+                this.jWheelAnimation = $(".wheel-animation");
+                document.addEventListener("play", startWheelAnimation.bind(dElms));
+                document.addEventListener("pause", stopWheelAnimation.bind(dElms));
+
+                //jquery-progress-slider
+                this.dfStart.onblur = JS.setEventAndDefaultMethod("section-updated",refreshProgressBar.bind(dElms));
+                this.dfEnd.onblur = JS.getEventDispatcher("section-updated");
+                this.jProgressBar = $("#progressbar");
+                refreshProgressBar.call(this);
+                updateProgress.call(this);
+                document.addEventListener("playing", updateProgress.bind(dElms));
+
+                //jquery-speed-bar
+                dElms.jSpeedBar = $("#speedBar");
+                document.addEventListener("speed",refreshSpeedBar.bind(dElms));
+                refreshSpeedBar.apply(dElms);
+                this.dfSpeed.onchange = JS.setEventAndDefaultMethod("speed", onSpeed.bind(dElms));
+                this.jSpeedBar.onchange = JS.setEventAndDefaultMethod("speed", onSpeed.bind(dElms));
+
+                //Dropbox
+                if (JS.isLocal) {
+                    this.dDropbox.parentNode.removeChild(this.dDropbox);
+                } else {
+                    this.dDropbox.onclick = JS.getEventDispatcher("dropbox");
+                }
+            };
+            JS.addEventListener("onAppReady",init.bind(dElms));
+            JS.addEventListener("file-loading",onFileLoading.bind(dElms));
+            JS.addEventListener("file-loaded", onFileLoaded.bind(dElms));
+            JS.addEventListener("no-file", onNoFileLoaded.bind(dElms));
+
+            document.getElementById("introSelectFile").onclick = JS.getEventDispatcher("eject");
+            document.getElementById("introSelectURL").onclick = JS.getEventDispatcher("url");
+            dElms.dLoadProgressBar = document.getElementById("loadBarProgress");
+            dElms.dFilename = document.getElementById("filename");
+            dElms.dPageLoading = document.getElementById("pageLoading");
+            dElms.dPageIntro = document.getElementById("pageIntro");
+            dElms.dPageMain = document.getElementById("pageMain");
+            dElms.dfBrowseFile = document.getElementById("browseFile");
+            dElms.dAudio = document.getElementById("audio");
+            dElms.dCountDown = document.getElementById("countdown");
+            dElms.dfStart = document.getElementById("start");
+            dElms.dCurrentPosition = document.getElementById("currentPosition");
+            dElms.dfEnd = document.getElementById("end");
+            dElms.dfDelay = document.getElementById("delay");
+            dElms.dfSpeed = document.getElementById("speed");
+            dElms.dbReset = document.getElementById("btnReset");
+            dElms.dbPlay = document.getElementById("btnPlay");
+            dElms.dbLoop = document.getElementById("btnLoop");
+            dElms.dbEject = document.getElementById("btnEject");
+            dElms.dDropbox = document.getElementById("btnDropbox");
+            dElms.dURL = document.getElementById("btnURL");
+            dElms.dYoutube = document.getElementById("btnYoutube");
+            dElms.dLeftWheel = document.getElementById("wheel-left");
+            dElms.dRightWheel = document.getElementById("wheel-right");
+            return dElms;
+        })();
+    }();
+</script>
+<script type="application/javascript" src="lib/jquery.js"></script>
+<script type="application/javascript" src="lib/jquery-ui/jquery-ui.min.js"></script>
+</html>

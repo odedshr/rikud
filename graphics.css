@@ -1,0 +1,144 @@
+@import url(http://fonts.googleapis.com/css?family=Walter+Turncoat);
+@import url(http://fonts.googleapis.com/css?family=Gloria+Hallelujah);
+
+.page.main .link-download {
+    background: url(images/download-sticker.png) no-repeat;
+    display: inline-block;
+    height: 92px;
+    width: 200px;
+    position: absolute;
+    left: 66%;
+    z-index: 99;
+    -ms-transform: rotate(5deg);
+    -webkit-transform: rotate(5deg);
+    transform: rotate(5deg);
+}
+.link-download span {
+    display: none;
+}
+
+.page.main .countdown {
+    font-size: 25rem;
+    display: inline-block;
+    line-height: 20rem;
+    height: 21rem;
+    top: 3rem;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+/* ============================================================================================ */
+.visuals {
+    height: 22rem;
+    margin: 1rem auto;
+    width: 100%;
+}
+/* ============================================================================================ */
+.progress {
+    height: 341px;
+    width: 580px;
+    margin: 1.5rem auto 0.5rem;
+    position: relative;
+    left: 1.5rem;
+}
+
+.cassette-parts {
+    position: absolute;
+    height:	341px;
+    margin: -13px 0 0 -11px;
+    width: 556px;
+}
+.cassette-cover { background: url(images/cassette-cover.png); }
+.cassette-back { background: url(images/cassette-back.png); }
+.cassette-label {
+    background: url(images/cassette-label.png);
+    box-sizing: border-box;
+    position: absolute;
+    font-family: 'Gloria Hallelujah', cursive;
+    font-size:3rem;
+    height:	245px;
+    margin: 13px 0 0 15px;
+    width: 518px;
+    padding: 30px 0 0 70px;
+    line-height: 20px;
+}
+.subtitle {
+    font-size: 1.5rem;
+}
+.cassette-label span {
+    -ms-transform: rotate(-2deg); /* IE 9 */
+    -webkit-transform: rotate(-2deg); /* Chrome, Safari, Opera */
+    transform: rotate(-2deg);;
+    display: block;
+    overflow: hidden;
+    height: 2rem;
+    white-space: nowrap;
+    width: 23rem;
+    text-overflow: ellipsis;
+}
+.wheel {
+    background: url(images/wheel.gif) center center;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: middle;
+    width:287px;
+    height:287px;
+}
+.wheel-wrapper {
+    display: inline-block;
+    height:287px;
+    text-align: center;
+    vertical-align: middle;
+    width:287px;
+}
+.wheel-height-keeper{
+    height: 287px;
+    display: inline-block;
+    vertical-align: middle;
+    visibility: hidden;
+    width:0.1rem;
+}
+#wheel-left {
+    width:125px;
+    height:125px;
+}
+#wheel-right {
+    margin-left:-6rem;
+}
+
+.wheel-animation {
+    height: 125px;
+    position: absolute;
+    width: 125px;
+}
+.wheel-animation-left {	margin: 81px 0 0 80px; }
+.wheel-animation-right { margin: 81px 0 0 323px }
+.wheel-animation-play {
+    background: url(images/wheel-play.gif);
+}
+/* ============================================================================================ */
+.buttons {
+    padding-bottom: 0.5rem;
+}
+.button {
+    background-repeat: no-repeat;
+    background-position: center center;
+    height: 3rem;
+    vertical-align: top;
+    width: 3rem;
+}
+.lblButton {
+    color: #999;
+    margin-top: 3rem;
+}
+
+.main .button.loop { background-image: url(images/arrow-loop-48.png);}
+.main .button.play { background-image: url(images/black_4_audio_play-48.png);}
+.main .button.reset { background-image: url(images/black_4_audio_step_back-48.png);}
+.main .button.eject { background-image: url(images/eject.png);}
+.main .button.dropbox { background-image: url(images/dropbox.png); display: inline-block; }
+.main .button.dropbox .lblButton { margin-left: -0.4rem; }
+.main .button.url { background-image: url(images/globe.png); display: inline-block; }
+/* ============================================================================================ */
+
+

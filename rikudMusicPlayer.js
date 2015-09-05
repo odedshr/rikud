@@ -15,68 +15,7 @@
             document.getElementsByTagName("head")[0].appendChild(tag);
             return tag;
         },
-        getSpeedParams = function getSliderParams (value) {
-            return {
-                range: "min",
-                min: 50,
-                max: 110,
-                value: value,
-                slide: onSpeedSlide
-            }
-        },
-        //////////////////////////////////////
-        onSpeedSlide = function onSlide ( event, ui ) {
-            var value = ui.value;
-            dAudio.playbackRate = value/100;
-            dSpeed.value = ui.value;
-        },
-        refreshSpeedBar = function refreshSpeedBar () {
-            var value = dSpeed.value;
-            dAudio.playbackRate = value/100;
-            jSpeedBar.slider(getSpeedParams(value));
-        },
-        ///////////////////////////////////
-        setObjectSize = function setObjectSize (obj,size) {
-            obj.style.height= (size/1)+"px";
-            obj.style.width= (size/1)+"px";
-        },
-        updateProgress = function updateProgress () {
-            var currentProgress= dAudio.currentTime/dAudio.duration,
-                offsetProgress = (dAudio.currentTime-dStart.value)/dAudio.duration;
-            jCurrentProgress.width ((offsetProgress*100)+"%");
-            setObjectSize(dLeftWheel, minWheelSize + (currentProgress)*(maxWheelExpandSize) );
-            setObjectSize(dRightWheel, maxWheelSize - (currentProgress)*(maxWheelExpandSize) );
-        },
 
-        getProgressBarParams = function getProgressBarParams (start, end) {
-            return {
-                range: true,
-                values: [start,end],
-                slide: onSlide
-            }
-        },
-        refreshProgressBar = function refreshProgressBar () {
-            var startValue = dStart.value ? dStart.value*100/dAudio.duration : 0,
-                endValue = dEnd.value ? dEnd.value*100/dAudio.duration : 100,
-                currentProgress= Math.min (((dAudio.currentTime-startValue)/dAudio.duration), 0);
-            jCurrentProgress = $('<span class="progress-current"id="progress-current" style="left:'+currentProgress+'%"></span>');
-            jProgressBar.slider(getProgressBarParams(startValue,endValue));
-            jProgressBar.prepend(jCurrentProgress);
-        },
-        onSlide = function onSlide ( event, ui ) {
-            var startPosition = (ui.values[ 0 ] * progressbarWidth / 100),
-                currentProgress= Math.min ((dAudio.currentTime-startPosition)/dAudio.duration, 0);
-
-            dStart.value = (ui.values[ 0 ] * dAudio.duration / 100).toFixed(2);
-            dEnd.value = (ui.values[ 1 ]  * dAudio.duration / 100).toFixed(2);
-            jCurrentProgress.css("left",startPosition+"px").width ((currentProgress*100)+"%");
-        },
-        startWheelAnimation = function startWheelAnimation () {
-            jWheelAnimation.addClass("wheel-animation-play");
-        },
-        stopWheelAnimation = function stopWheelAnimation () {
-            jWheelAnimation.removeClass("wheel-animation-play");
-        },
         //////////////////////////////////////
 
         minWheelSize = 125, maxWheelSize = 287, maxWheelExpandSize = (maxWheelSize - minWheelSize),
@@ -85,8 +24,7 @@
         jProgressBar = null,
         jCurrentProgress = null,
         jWheelAnimation = null,
-        dLeftWheel = document.getElementById("wheel-left"),
-        dRightWheel = document.getElementById("wheel-right"),
+
         dAudio = document.getElementById("audio"),
         dSpeed = document.getElementById("speed"),
         dStart = document.getElementById("start"),
@@ -120,10 +58,7 @@
                 };
 
                 (function addDropboxExtension () {
-                    var dropboxScript = addScript("https://www.dropbox.com/static/api/2/dropins.js");
-                    dropboxScript.id = "dropboxjs";
-                    dropboxScript.setAttribute("data-app-key","gtgt6pn5omtw4qc");
-                    dropboxScript.onload = function onDropBoxLoaded () {
+                    var onDropBoxLoaded = function onDropBoxLoaded () {
                         var dFile = document.getElementById("file"),
                             button = document.createElement("button"),
                             dropboxOptions = {
@@ -143,10 +78,27 @@
                         button.className = "button dropbox";
                         dFile.className += " withBrowse";
                         document.getElementById("buttons").appendChild(button);
+                    };
+
+                    if (document.getElementById("dropboxjs")) {
+                        var dropboxScript = addScript("https://www.dropbox.com/static/api/2/dropins.js");
+                        dropboxScript.id = "dropboxjs";
+                        dropboxScript.setAttribute("data-app-key","gtgt6pn5omtw4qc");
+                        dropboxScript.onload = onDropBoxLoaded;
+                    } else {
+                        onDropBoxLoaded();
+                    }
+                })();
+
+                (function addYoutubeExtension () {
+                    var checkForYoutubeURL =
+                    document.addEventListener("setFile",checkForYoutubeURL);
+                    if (location.href.indexOf("//www.youtube.com/")>-1 || location.href.indexOf("//youtu.be/")>-1) {
+
                     }
                 })();
             };
-            addStyle ("remote.css");
+            addStyle ("graphics.css");
             addStyle ("lib/jquery-ui/jquery-ui.min.css");
 
             document.getElementById("body").className += " remote";
