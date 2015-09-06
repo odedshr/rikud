@@ -681,9 +681,11 @@ TODO:
             },
             dropboxOptions = {
                 success: function(files) {
-                    var file = files[0];
+                    var file = files[0],
+                        url = file.link;
+                    url = (url.indexOf("?")==-1) ? url+"?raw=1" : url.replace(/\?/,"?raw=1&");
                     dispatchEvent("file-loaded",{ name: file.name,
-                                                     data: file.link});
+                                                     data: url });
                 },
                 cancel: function() {},
                 linkType: "preview", // or "direct"
@@ -874,7 +876,6 @@ TODO:
                         var extractedName = "song from the web";
                         if ((url.indexOf("dropbox")>-1) && url.indexOf("raw=1")==-1) {
                             url = (url.indexOf("?")==-1) ? url+"?raw=1" : url.replace(/\?/,"?raw=1&");
-                            return downloadFile(url);
                         } else if (url.indexOf("youtube.com") || url.indexOf("youtu.be")) {
                             if (JS.isYoutubeEnabled) {
                                 return downloadFile(sYoutubeDownloader + url);
