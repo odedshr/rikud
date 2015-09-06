@@ -98,11 +98,11 @@
     visibility: hidden;
     width:0.1rem;
 }
-#wheel-left {
+#wheelLeft {
     width:125px;
     height:125px;
 }
-#wheel-right {
+#wheelRight {
     margin-left:-6rem;
 }
 

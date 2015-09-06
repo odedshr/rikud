@@ -1,11 +1,4 @@
 <!DOCTYPE html>
-<!--
-TODO:
-3. add dropbox
-5. add youtube
-6. replace IDs
-7. access keys
--->
 <html>
 <head lang="en">
     <meta charset="UTF-8">
@@ -490,8 +483,7 @@ TODO:
 </div>
 <div id="pageIntro" class="page intro hidden">
     <p>Rikud is a music player for dancers</p>
-    <p>You start by selecting a <a href="#" id="introSelectFile" class="persistent">music file</a> or a <a href="#" id="introSelectURL" class="persistent">URL</a>
-    <span id="introFeatureDropbox"><br/>or choose a file from you <a href="#" id="introSelectDropbox" class="persistent">Dropbox</a></span>.</p>
+    <p>You start by selecting a <a href="#" id="introSelectFile" class="persistent">music file</a> or a <a href="#" id="introSelectURL" class="persistent">URL</a><span id="introFeatureDropbox"><br/>or choose a file from you <a href="#" id="introSelectDropbox" class="persistent">Dropbox</a></span>.</p>
 </div>
 <div id="pageMain" class="page main hidden">
     <a href="index.html" id="linkDownload" accesskey="d" download="rikud" class="link-download" title="Download Player"><span>Download</span></a>
@@ -507,8 +499,8 @@ TODO:
             <div class="wheel-animation wheel-animation-right"></div>
             <div class="cassette-parts cassette-cover"></div>
             <h1 class="cassette-label"><a href="https://odedshr.github.io/rikud" target="_blank" class="title">Rikud</a><span class="subtitle" id="filename"></span></h1>
-            <div class="wheel-wrapper"><div id="wheel-left" class="wheel"></div><div class="wheel-height-keeper"></div></div>
-            <div class="wheel-wrapper"><div id="wheel-right" class="wheel"></div><div class="wheel-height-keeper"></div></div>
+            <div class="wheel-wrapper"><div id="wheelLeft" class="wheel"></div><div class="wheel-height-keeper"></div></div>
+            <div class="wheel-wrapper"><div id="wheelRight" class="wheel"></div><div class="wheel-height-keeper"></div></div>
         </div>
     </header>
 
@@ -518,8 +510,8 @@ TODO:
             <button id="btnPlay"  name="btnPlay" title="Play" accesskey="p" class="button play"><label class="lblButton" for="btnPlay"><span class="u">P</span>lay</label></button>
             <button id="btnLoop"  name="btnLoop" title="Loop" accesskey="l" class="button loop"><label class="lblButton" for="btnLoop"> <span class="u">L</span>oop</label></button>
             <button id="btnEject" name="btnEject" title="Select File" accesskey="f" class="button eject"><label class="lblButton" for="btnEject"><span class="u">F</span>ile</label></button>
-            <button id="btnURL" name="btnURL" title="Select a URL" accesskey="x" class="button url"><label class="lblButton" for="btnURL"><span class="u">U</span>RL</label></button>
-            <button id="btnDropbox" name="btnDropbox" title="Select File from dropbox" accesskey="x" class="button dropbox"><label class="lblButton" for="btnDropbox">Dropbo<span class="u">x</span></label></button>
+            <button id="btnURL" name="btnURL" title="Select a URL" accesskey="u" class="button url"><label class="lblButton" for="btnURL"><span class="u">U</span>RL</label></button>
+            <button id="btnDropbox" name="btnDropbox" title="Select File from dropbox" accesskey="b" class="button dropbox"><label class="lblButton" for="btnDropbox">Drop<span class="u">b</span>ox</label></button>
         </div>
 
         <div id="progressbar" class="progress-bar"></div>
@@ -791,7 +783,7 @@ TODO:
                 alert (evt.detail);
             },
             onEject = function onEject () {
-                dElms.dfBrowseFile.click();
+                dElms.browseFile.click();
                 return false;
             },
             browseFileChanged = function browseFileChanged () {
@@ -799,26 +791,26 @@ TODO:
             },
             onNoFileLoaded = function onNoFileLoaded () {
                 var that = this;
-                fadeOut((hasClass(this.dPageMain,"hidden") ? this.dPageLoading : this.dPageMain), function afterFaded () {
-                    fadeIn (that.dPageIntro);
+                fadeOut((hasClass(this.pageMain,"hidden") ? this.pageLoading : this.pageMain), function afterFaded () {
+                    fadeIn (that.pageIntro);
                 });
             },
             onFileLoading = function onFileUploading (evt) {
                 if (evt.detail.lengthComputable) {
-                    dElms.dLoadProgressBar.style.width = Math.min(100,Math.round((evt.detail.loaded / evt.detail.total) * 100)) + "%";
+                    dElms.loadBarProgress.style.width = Math.min(100,Math.round((evt.detail.loaded / evt.detail.total) * 100)) + "%";
                 }
             },
             onFileLoaded = function onFileLoaded (evt) {
                 var filename = evt.detail.name,
                     that = this;
-                this.dFilename.innerHTML = filename ? filename.replace(/\.mp3/,"") : defaultFileName;
-                this.dAudio.src = evt.detail.data;
-                this.dAudio.play();
-                this.dAudio.pause();
-                this.dLoadProgressBar.style.width = "";
-                if (hasClass(this.dPageMain,"hidden")) {
-                    fadeOut((hasClass(this.dPageIntro,"hidden") ? this.dPageLoading : this.dPageIntro), function afterFaded () {
-                        fadeIn (that.dPageMain);
+                this.filename.innerHTML = filename ? filename.replace(/\.mp3/,"") : defaultFileName;
+                this.audio.src = evt.detail.data;
+                this.audio.play();
+                this.audio.pause();
+                this.loadBarProgress.style.width = "";
+                if (hasClass(this.pageMain,"hidden")) {
+                    fadeOut((hasClass(this.pageIntro,"hidden") ? this.pageLoading : this.pageIntro), function afterFaded () {
+                        fadeIn (that.pageMain);
                     });
                 }
             },
@@ -830,10 +822,10 @@ TODO:
                 oReq.open("GET", url, true);
                 oReq.responseType = "arraybuffer";
                 oReq.onprogress = function (oEvent) {
-                    dElms.dLoadProgressBar.innerHTML = isNaN(oEvent.loaded) ? 'Loading...' : prettifyBytes(+oEvent.loaded) + ' loaded';
+                    dElms.loadBarProgress.innerHTML = isNaN(oEvent.loaded) ? 'Loading...' : prettifyBytes(+oEvent.loaded) + ' loaded';
                 };
                 oReq.onload = function (oEvent) {
-                    dElms.dLoadProgressBar.innerHTML = "";
+                    dElms.loadBarProgress.innerHTML = "";
                     var arrayBuffer = oReq.response; // Note: not oReq.responseText
                     if (arrayBuffer) {
                         var encodedData = "data:audio/mpeg;base64,"+ JS._arrayBufferToBase64(arrayBuffer);
@@ -894,7 +886,7 @@ TODO:
                 return false;
             },
             onAudioError = function onAudioError (ev) {
-                if (dElms.dAudio.error.code == 4) {
+                if (dElms.audio.error.code == 4) {
                     alert ("something went wrong\nI think I'm missing the audio file....");
                 } else {
                     alert ("oops! something went wrong");
@@ -902,8 +894,8 @@ TODO:
                 JS.dispatchEvent("stop");
             },
             onAudioLoaded = function onAudioLoaded () {
-                if (+dElms.dfEnd.value==0) {
-                    dElms.dfEnd.value = dElms.dAudio.duration.toFixed(2);
+                if (+dElms.end.value==0) {
+                    dElms.end.value = dElms.audio.duration.toFixed(2);
                 }
             },
 
@@ -912,49 +904,49 @@ TODO:
                 JS.dispatchEvent(JS.isPlaying ? "play" : "pause");
             },
             onPlay = function onPlay () {
-                this.dbPlay.className += " pressed";
+                this.btnPlay.className += " pressed";
 
-                var delay = + this.dfDelay.value,
+                var delay = + this.delay.value,
                     that = this;
-                if (this.dAudio.currentTime == (+this.dfStart.value) && delay) {
+                if (this.audio.currentTime == (+this.start.value) && delay) {
                     if (delayCountDown) { clearInterval(this.delayCountDown); }
                     this.delayCountDown = window.setInterval(function () {
-                        that.dCountDown.innerHTML = "" + (--delay);
+                        that.countdown.innerHTML = "" + (--delay);
                         if (!delay || !JS.isPlaying) {
-                            JS.isPlaying && that.dAudio.play();
+                            JS.isPlaying && that.audio.play();
                             clearInterval(that.delayCountDown);
                             delete (that.delayCountDown);
-                            that.dCountDown.innerHTML = "";
+                            that.countdown.innerHTML = "";
                         }
                     }, 1000);
                 } else {
-                    this.dAudio.play();
+                    this.audio.play();
                 }
             },
             onReset = function onReset () {
-                var time = + this.dfStart.value;
-                this.dAudio.currentTime = time;
+                var time = + this.start.value;
+                this.audio.currentTime = time;
                 updateCurrentPositionField.call(this,time);
                 updateProgress.call(this)
             },
             onPause = function onPause () {
-                this.dAudio.pause();
-                removeClass(this.dbPlay, "pressed");
+                this.audio.pause();
+                removeClass(this.btnPlay, "pressed");
             },
             onStop = function onStop () {
                 JS.dispatchEvent("reset");
                 JS.dispatchEvent("pause");
             },
             onLoop = function onLoop () {
-                toggleClass(this.dbLoop, "pressed");
+                toggleClass(this.btnLoop, "pressed");
             },
             updateCurrentPositionField = function updateCurrentPositionField(time) {
-                this.dCurrentPosition.value = time.toFixed(2);
-                this.dCurrentPosition.title = prettifyTime(time);
+                this.currentPosition.value = time.toFixed(2);
+                this.currentPosition.title = prettifyTime(time);
             },
             onPlaying = function onPlaying () {
-                var end = +this.dfEnd.value,
-                    time = this.dAudio.currentTime;
+                var end = +this.end.value,
+                    time = this.audio.currentTime;
                 updateCurrentPositionField.call(this, time);
                 if (end && end < time) {
                     JS.dispatchEvent("stop");
@@ -963,44 +955,22 @@ TODO:
                     }
                 }
             },
+            accessKeyMethods = {
+                "f" : function () { JS.dispatchEvent("eject"); },
+                "r" : function () { JS.dispatchEvent("reset"); },
+                "p" : function () { JS.dispatchEvent("playPausedPressed"); },
+                "l" : function () { JS.dispatchEvent("loop"); },
+                "u" : function () { JS.dispatchEvent("url"); },
+                "b" : function () { JS.dispatchEvent("dropbox"); },
+                "w" : this.delay.focus,
+                "s" : this.start.focus,
+                "e" : this.end.focus,
+                "d" : this.speed.focus
+            },
             onKeyUp = function onKeyUp (ev) {
-                switch (String.fromCharCode(ev.which || ev.keyCode)) {
-                    case "f":
-                    case "F":
-                        JS.dispatchEvent("eject");
-                        break;
-                    case "r":
-                    case "R":
-                        JS.dispatchEvent("reset");
-                        break;
-                    case "p":
-                    case "P":
-                        JS.dispatchEvent("play");
-                        break;
-                    case "l":
-                    case "L":
-                        JS.dispatchEvent("loop");
-                        break;
-                    case "w":
-                    case "W":
-                        this.dfDelay.focus();
-                        break;
-                    case "s":
-                    case "S":
-                        this.dfStart.focus();
-                        break;
-                    case "e":
-                    case "E":
-                        this.dfEnd.focus();
-                        break;
-                    case "d":
-                    case "D":
-                        this.dfSpeed.focus();
-                        break;
-                    case "x":
-                    case "X":
-                        JS.dispatchEvent("dropbox");
-                        break;
+                var key = (String.fromCharCode(ev.which || ev.keyCode)).toLowerCase();
+                if (accessKeyMethods[key]) {
+                    accessKeyMethods[key]();
                 }
             },
             //////////////////////////////////////
@@ -1015,17 +985,17 @@ TODO:
             },
             onSpeedSlide = function onSlide ( event, ui ) {
                 var value = ui.value;
-                this.dAudio.playbackRate = value/100;
-                this.dfSpeed.value = ui.value;
+                this.audio.playbackRate = value/100;
+                this.speed.value = ui.value;
             },
             refreshSpeedBar = function refreshSpeedBar () {
-                var value = this.dfSpeed.value;
-                this.dAudio.playbackRate = value/100;
+                var value = this.speed.value;
+                this.audio.playbackRate = value/100;
                 this.jSpeedBar.slider(getSpeedParams(value));
             },
             onSpeed = function onSpeed (ev) {
                 var value = +ev.detail.target.value;
-                this.dAudio.playbackRate = (value)/100;
+                this.audio.playbackRate = (value)/100;
                 // speedbar updated itself using refreshSpeedBar is send it event using onSpeedSlide
             },
             ///////////////////////////////////
@@ -1035,19 +1005,19 @@ TODO:
             },
             refreshCurrentPositionVisual = function refreshCurrentPositionVisual() {
                 var progressbarWidth = +this.jProgressBar.width(),
-                    startPosition = (+this.dfStart.value/+this.dAudio.duration * progressbarWidth),
-                    currentPositionBiased= Math.max ((this.dAudio.currentTime/this.dAudio.duration*progressbarWidth)-startPosition, 0);
+                    startPosition = (+this.start.value/+this.audio.duration * progressbarWidth),
+                    currentPositionBiased= Math.max ((this.audio.currentTime/this.audio.duration*progressbarWidth)-startPosition, 0);
                 this.jCurrentProgress.css("left",startPosition+"px").width ((currentPositionBiased)+"px");
             },
             updateProgress = function updateProgress () {
-                var currentProgress= this.dAudio.currentTime/this.dAudio.duration;
+                var currentProgress= this.audio.currentTime/this.audio.duration;
                 refreshCurrentPositionVisual.call(this);
-                setObjectSize(this.dLeftWheel, minWheelSize + (currentProgress)*(maxWheelExpandSize) );
-                setObjectSize(this.dRightWheel, maxWheelSize - (currentProgress)*(maxWheelExpandSize) );
+                setObjectSize(this.wheelLeft, minWheelSize + (currentProgress)*(maxWheelExpandSize) );
+                setObjectSize(this.wheelRight, maxWheelSize - (currentProgress)*(maxWheelExpandSize) );
             },
             onProgressSlide = function onProgressSlide ( event, ui ) {
-                this.dfStart.value = (ui.values[ 0 ] * this.dAudio.duration / 100).toFixed(2);
-                this.dfEnd.value = (ui.values[ 1 ]  * this.dAudio.duration / 100).toFixed(2);
+                this.start.value = (ui.values[ 0 ] * this.audio.duration / 100).toFixed(2);
+                this.end.value = (ui.values[ 1 ]  * this.audio.duration / 100).toFixed(2);
                 refreshCurrentPositionVisual.call(this);
             },
             getProgressBarParams = function getProgressBarParams (start, end) {
@@ -1058,8 +1028,8 @@ TODO:
                 };
             },
             refreshProgressBar = function refreshProgressBar () {
-                var startValue = this.dfStart.value ? +this.dfStart.value*100/this.dAudio.duration : 0,
-                        endValue = this.dfEnd.value ? +this.dfEnd.value*100/this.dAudio.duration : 100;
+                var startValue = this.start.value ? +this.start.value*100/this.audio.duration : 0,
+                        endValue = this.end.value ? +this.end.value*100/this.audio.duration : 100;
                 this.jCurrentProgress && this.jCurrentProgress.remove();
                 this.jCurrentProgress = $('<span class="progress-current"id="progress-current"></span>');
                 this.jProgressBar.slider(getProgressBarParams(startValue,endValue));
@@ -1075,15 +1045,15 @@ TODO:
                 this.jWheelAnimation.removeClass("wheel-animation-play");
             },
             init = function init () {
-                this.dfBrowseFile.onchange = JS.setEventAndDefaultMethod("file-selected",browseFileChanged.bind(dElms));
-                this.dAudio.onerror = JS.setEventAndDefaultMethod("audio-error", onAudioError.bind(dElms));
-                this.dAudio.oncanplaythrough = JS.setEventAndDefaultMethod("audio-loaded", onAudioLoaded.bind(dElms));
+                this.browseFile.onchange = JS.setEventAndDefaultMethod("file-selected",browseFileChanged.bind(dElms));
+                this.audio.onerror = JS.setEventAndDefaultMethod("audio-error", onAudioError.bind(dElms));
+                this.audio.oncanplaythrough = JS.setEventAndDefaultMethod("audio-loaded", onAudioLoaded.bind(dElms));
 
-                this.dbReset.onclick = JS.setEventAndDefaultMethod("reset", onReset.bind(dElms));
-                this.dbPlay.onclick = JS.setEventAndDefaultMethod("playPausedPressed", onPlayPausePressed.bind(dElms));
-                this.dbLoop.onclick = JS.setEventAndDefaultMethod("loop", onLoop.bind(dElms));
-                this.dbEject.onclick = JS.setEventAndDefaultMethod("eject", onEject.bind(dElms));
-                this.dURL.onclick = JS.setEventAndDefaultMethod("url", onURL.bind(dElms));
+                this.btnReset.onclick = JS.setEventAndDefaultMethod("reset", onReset.bind(dElms));
+                this.btnPlay.onclick = JS.setEventAndDefaultMethod("playPausedPressed", onPlayPausePressed.bind(dElms));
+                this.btnLoop.onclick = JS.setEventAndDefaultMethod("loop", onLoop.bind(dElms));
+                this.btnEject.onclick = JS.setEventAndDefaultMethod("eject", onEject.bind(dElms));
+                this.btnURL.onclick = JS.setEventAndDefaultMethod("url", onURL.bind(dElms));
 
                 JS.setEventAndDefaultMethod("play", onPlay.bind(dElms));
                 JS.setEventAndDefaultMethod("stop", onStop.bind(dElms)); // stop = reset+pause
@@ -1099,8 +1069,8 @@ TODO:
                 document.addEventListener("pause", stopWheelAnimation.bind(dElms));
 
                 //jquery-progress-slider
-                this.dfStart.onblur = JS.setEventAndDefaultMethod("section-updated",refreshProgressBar.bind(dElms));
-                this.dfEnd.onblur = JS.getEventDispatcher("section-updated");
+                this.start.onblur = JS.setEventAndDefaultMethod("section-updated",refreshProgressBar.bind(dElms));
+                this.end.onblur = JS.getEventDispatcher("section-updated");
                 this.jProgressBar = $("#progressbar");
                 refreshProgressBar.call(this);
                 updateProgress.call(this);
@@ -1110,16 +1080,15 @@ TODO:
                 dElms.jSpeedBar = $("#speedBar");
                 document.addEventListener("speed",refreshSpeedBar.bind(dElms));
                 refreshSpeedBar.apply(dElms);
-                this.dfSpeed.onchange = JS.setEventAndDefaultMethod("speed", onSpeed.bind(dElms));
+                this.speed.onchange = JS.setEventAndDefaultMethod("speed", onSpeed.bind(dElms));
                 this.jSpeedBar.onchange = JS.setEventAndDefaultMethod("speed", onSpeed.bind(dElms));
 
                 //Dropbox
                 if (JS.isLocal) {
-                    this.dDropbox.parentNode.removeChild(this.dDropbox);
-                    var child = document.getElementById("introFeatureDropbox");
-                    child.parentNode.removeChild(child);
+                    this.btnDropbox.parentNode.removeChild(this.btnDropbox);
+                    this.introFeatureDropbox.parentNode.removeChild(this.introFeatureDropbox);
                 } else {
-                    this.dDropbox.onclick = JS.getEventDispatcher("dropbox");
+                    this.btnDropbox.onclick = JS.getEventDispatcher("dropbox");
                 }
             };
             JS.addEventListener("onAppReady",init.bind(dElms));
@@ -1127,31 +1096,13 @@ TODO:
             JS.addEventListener("file-loaded", onFileLoaded.bind(dElms));
             JS.addEventListener("no-file", onNoFileLoaded.bind(dElms));
 
-            document.getElementById("introSelectFile").onclick = JS.getEventDispatcher("eject");
-            document.getElementById("introSelectURL").onclick = JS.getEventDispatcher("url");
-            document.getElementById("introSelectDropbox").onclick = JS.getEventDispatcher("dropbox");
-            dElms.dLoadProgressBar = document.getElementById("loadBarProgress");
-            dElms.dFilename = document.getElementById("filename");
-            dElms.dPageLoading = document.getElementById("pageLoading");
-            dElms.dPageIntro = document.getElementById("pageIntro");
-            dElms.dPageMain = document.getElementById("pageMain");
-            dElms.dfBrowseFile = document.getElementById("browseFile");
-            dElms.dAudio = document.getElementById("audio");
-            dElms.dCountDown = document.getElementById("countdown");
-            dElms.dfStart = document.getElementById("start");
-            dElms.dCurrentPosition = document.getElementById("currentPosition");
-            dElms.dfEnd = document.getElementById("end");
-            dElms.dfDelay = document.getElementById("delay");
-            dElms.dfSpeed = document.getElementById("speed");
-            dElms.dbReset = document.getElementById("btnReset");
-            dElms.dbPlay = document.getElementById("btnPlay");
-            dElms.dbLoop = document.getElementById("btnLoop");
-            dElms.dbEject = document.getElementById("btnEject");
-            dElms.dDropbox = document.getElementById("btnDropbox");
-            dElms.dURL = document.getElementById("btnURL");
-            dElms.dYoutube = document.getElementById("btnYoutube");
-            dElms.dLeftWheel = document.getElementById("wheel-left");
-            dElms.dRightWheel = document.getElementById("wheel-right");
+            [].forEach.call(document.querySelectorAll("[id]"), function perDOMElement(dElm) {
+                dElms[dElm.id]= dElm;
+            });
+            dElms.introSelectFile.onclick = JS.getEventDispatcher("eject");
+            dElms.introSelectURL.onclick = JS.getEventDispatcher("url");
+            dElms.introSelectDropbox.onclick = JS.getEventDispatcher("dropbox");
+
             return dElms;
         })();
     }();
