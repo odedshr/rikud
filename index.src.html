@@ -676,7 +676,9 @@ TODO:
             },
             dropboxOptions = {
                 success: function(files) {
-                    console.log(JSON.stringify(files[0]));
+                    var file = files[0];
+                    JS.dispatchEvent("file-loaded",{ name: file.name,
+                                                     data: file.link});
                 },
                 cancel: function() {},
                 linkType: "preview", // or "direct"
