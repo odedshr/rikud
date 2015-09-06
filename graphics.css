@@ -1,6 +1,14 @@
 @import url(http://fonts.googleapis.com/css?family=Walter+Turncoat);
 @import url(http://fonts.googleapis.com/css?family=Gloria+Hallelujah);
 
+
+body .load-bar-progress:empty {
+    margin: 0;
+}
+body .load-bar-progress {
+    margin: 0 0.6rem;
+}
+
 .page.main .link-download {
     background: url(images/download-sticker.png) no-repeat;
     display: inline-block;
@@ -32,6 +40,10 @@
     height: 22rem;
     margin: 1rem auto;
     width: 100%;
+}
+
+.visuals .title {
+    padding-top: 0;
 }
 /* ============================================================================================ */
 .progress {
