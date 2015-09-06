@@ -51,8 +51,13 @@ TODO:
             font-size: 2rem;
             margin: 25% auto;
             width: 49rem;
-            line-height: 1rem;
             letter-spacing: 0.15rem;
+        }
+        .page.loading {
+            line-height: 1rem;
+        }
+        .page.intro p {
+            margin : 0;
         }
         @keyframes fade-in {
             from { opacity: 0;}
@@ -101,6 +106,7 @@ TODO:
         .link-download {
             display: none;
         }
+
         /* ============================================================================================ */
         .cassette-label {
             margin: 0;
@@ -484,7 +490,8 @@ TODO:
 </div>
 <div id="pageIntro" class="page intro hidden">
     <p>Rikud is a music player for dancers</p>
-    <p>You start by selecting a <a href="#" id="introSelectFile" class="persistent">music file</a> or a <a href="#" id="introSelectURL" class="persistent">URL</a>.</p>
+    <p>You start by selecting a <a href="#" id="introSelectFile" class="persistent">music file</a> or a <a href="#" id="introSelectURL" class="persistent">URL</a>
+    <span id="introFeatureDropbox"><br/>or choose a file from you <a href="#" id="introSelectDropbox" class="persistent">Dropbox</a></span>.</p>
 </div>
 <div id="pageMain" class="page main hidden">
     <a href="index.html" id="linkDownload" accesskey="d" download="rikud" class="link-download" title="Download Player"><span>Download</span></a>
@@ -596,8 +603,6 @@ TODO:
                 addEventListener(eventName,method);
                 return getEventDispatcher(eventName);
             },
-            keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-
             _arrayBufferToBase64 = function _arrayBufferToBase64( buffer ) {
                 var binary = '';
                 var bytes = new Uint8Array( buffer );
@@ -606,7 +611,7 @@ TODO:
                     binary += String.fromCharCode( bytes[ i ] );
                 }
                 return window.btoa( binary );
-            }
+            },
             onErrorLoadingFile = function onErrorLoadingFile (evt) {
                 switch(evt.target.error.code) {
                     case evt.target.error.NOT_FOUND_ERR:
@@ -1110,6 +1115,8 @@ TODO:
                 //Dropbox
                 if (JS.isLocal) {
                     this.dDropbox.parentNode.removeChild(this.dDropbox);
+                    var child = document.getElementById("introFeatureDropbox");
+                    child.parentNode.removeChild(child);
                 } else {
                     this.dDropbox.onclick = JS.getEventDispatcher("dropbox");
                 }
@@ -1121,6 +1128,7 @@ TODO:
 
             document.getElementById("introSelectFile").onclick = JS.getEventDispatcher("eject");
             document.getElementById("introSelectURL").onclick = JS.getEventDispatcher("url");
+            document.getElementById("introSelectDropbox").onclick = JS.getEventDispatcher("dropbox");
             dElms.dLoadProgressBar = document.getElementById("loadBarProgress");
             dElms.dFilename = document.getElementById("filename");
             dElms.dPageLoading = document.getElementById("pageLoading");
