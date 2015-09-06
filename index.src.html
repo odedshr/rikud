@@ -604,34 +604,26 @@
                 }
                 return window.btoa( binary );
             },
-            onErrorLoadingFile = function onErrorLoadingFile (evt) {
-                switch(evt.target.error.code) {
-                    case evt.target.error.NOT_FOUND_ERR:
-                        alert('File Not Found!');
-                        break;
-                    case evt.target.error.NOT_READABLE_ERR:
-                        alert('File is not readable');
-                        break;
-                    case evt.target.error.ABORT_ERR:
-                        break; // noop
-                    default:
-                        alert('An error occurred reading this file.');
-                }
-            },
             uploadFile = function uploadFile (evt) {
                 var file = (evt.detail ? evt.detail : evt).target.files[0],
                     reader = new FileReader();
-                reader.onerror = setEventAndDefaultMethod("file-error",onErrorLoadingFile);
-                reader.onprogress = getEventDispatcher("file-loading");
-                reader.onload = function(fileLoadedEvent){
-                    dispatchEvent("file-loaded",{
-                        name: file.name,
-                        data: fileLoadedEvent.target.result
-                    });
-                };
-                reader.onerror = function (err) { alert ("error "+err); };
+                if (file) {
+                    reader.onerror = getEventDispatcher("file-error");
+                    reader.onprogress = function onLocalFileLoading () {
+                        if (evt.lengthComputable) {
+                            dispatchEvent("file-loading", { loaded: evt.loaded, total: evt.total});
+                        }
+                    };
+                    reader.onload = function onLocalFileLoaded (fileLoadedEvent){
+                        dispatchEvent("file-loaded",{
+                            name: file.name,
+                            data: fileLoadedEvent.target.result
+                        });
+                    };
+                    reader.onerror = function (err) { alert ("error "+err); };
 
-                reader.readAsDataURL(file);
+                    reader.readAsDataURL(file);
+                }
             },
             saveFile = function saveFile(evt) {
               try {
@@ -649,6 +641,50 @@
                   }
                   localStorage.removeItem("music");
               }
+            },
+            downloadFile = function downloadFile (url) {
+                var oReq = new XMLHttpRequest();
+                oReq.open("GET", url, true);
+                oReq.responseType = "arraybuffer";
+                oReq.onprogress = function (evt) {
+                    dispatchEvent("file-loading", { loaded: evt.loaded, total: evt.total});
+                };
+                oReq.onload = function (oEvent) {
+                    dispatchEvent("file-loading", { loaded: 0, total: 0 });
+                    var arrayBuffer = oReq.response; // Note: not oReq.responseText
+                    if (arrayBuffer) {
+                        var encodedData = "data:audio/mpeg;base64,"+ _arrayBufferToBase64(arrayBuffer);
+                        dispatchEvent("file-loaded",{ name: "song from web",
+                            data: encodedData,
+                            onQuotaExceededError: function () {
+                                if (confirm("File to big to be cached (you can still play it).\nSave it locally for future use?")) {
+                                    saveYouTubeFileLocally(arrayBuffer);
+                                }
+                            }
+                        });
+                    }
+                };
+
+                oReq.send(null);
+                return false;
+            },
+            saveYouTubeFileLocally = function saveYouTubeFileLocally (arrayBuffer) {
+                var saveByteArray = (function () {
+                    var a = document.createElement("a");
+                    document.body.appendChild(a);
+                    a.style = "display: none";
+                    return function (data, name) {
+                        var blob = new Blob(data, {type: "octet/stream"}),
+                                url = window.URL.createObjectURL(blob);
+                        a.href = url;
+                        a.download = name;
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+                    };
+                }());
+
+                saveByteArray([arrayBuffer], 'rikud.mp3');
             },
             onLoop = function onLoop () {
                 this.isLoop = !this.isLoop;
@@ -711,7 +747,7 @@
             vars.getEventDispatcher = getEventDispatcher.bind(vars);
             vars.addEventListener = addEventListener.bind(vars);
             vars.dispatchEvent = dispatchEvent.bind(vars);
-            vars._arrayBufferToBase64 = _arrayBufferToBase64.bind(vars);
+            vars.downloadFile = downloadFile.bind(vars);
             window.onload = setEventAndDefaultMethod ("onAppReady",init.bind(vars));
             return vars;
         })(),
@@ -796,8 +832,15 @@
                 });
             },
             onFileLoading = function onFileUploading (evt) {
-                if (evt.detail.lengthComputable) {
-                    dElms.loadBarProgress.style.width = Math.min(100,Math.round((evt.detail.loaded / evt.detail.total) * 100)) + "%";
+                if (evt.detail.loaded != evt.detail.total) {
+                    if (evt.detail.total) {
+                        this.loadBarProgress.style.width = Math.min(100,Math.round((evt.detail.loaded / evt.detail.total) * 100)) + "%";
+                    } else {
+                        this.loadBarProgress.innerHTML = isNaN(evt.detail.loaded) ? 'Loading...' : prettifyBytes(+evt.detail.loaded) + ' loaded';
+                    }
+                } else {
+                    this.loadBarProgress.innerHTML = "";
+                    this.loadBarProgress.style.width = "";
                 }
             },
             onFileLoaded = function onFileLoaded (evt) {
@@ -807,7 +850,6 @@
                 this.audio.src = evt.detail.data;
                 this.audio.play();
                 this.audio.pause();
-                this.loadBarProgress.style.width = "";
                 if (hasClass(this.pageMain,"hidden")) {
                     fadeOut((hasClass(this.pageIntro,"hidden") ? this.pageLoading : this.pageIntro), function afterFaded () {
                         fadeIn (that.pageMain);
@@ -816,50 +858,6 @@
             },
             validateURL = function validateURL (url) {
                 return /^(https?|ftp):\/\/(((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:)*@)?(((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5]))|((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?)(:\d*)?)(\/((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)+(\/(([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)*)*)?)?(\?((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|[\uE000-\uF8FF]|\/|\?)*)?(\#((([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(%[\da-f]{2})|[!\$&'\(\)\*\+,;=]|:|@)|\/|\?)*)?$/i.test(url);
-            },
-            downloadFile = function downloadFile (url) {
-                var oReq = new XMLHttpRequest();
-                oReq.open("GET", url, true);
-                oReq.responseType = "arraybuffer";
-                oReq.onprogress = function (oEvent) {
-                    dElms.loadBarProgress.innerHTML = isNaN(oEvent.loaded) ? 'Loading...' : prettifyBytes(+oEvent.loaded) + ' loaded';
-                };
-                oReq.onload = function (oEvent) {
-                    dElms.loadBarProgress.innerHTML = "";
-                    var arrayBuffer = oReq.response; // Note: not oReq.responseText
-                    if (arrayBuffer) {
-                        var encodedData = "data:audio/mpeg;base64,"+ JS._arrayBufferToBase64(arrayBuffer);
-                        JS.dispatchEvent("file-loaded",{ name: "song from web",
-                                                         data: encodedData,
-                                                        onQuotaExceededError: function () {
-                                                            if (confirm("File to big to be cached (you can still play it).\nSave it locally for future use?")) {
-                                                                saveYouTubeFileLocally(arrayBuffer);
-                                                            }
-                                                        }
-                        });
-                    }
-                };
-
-                oReq.send(null);
-                return false;
-            },
-            saveYouTubeFileLocally = function saveYouTubeFileLocally (arrayBuffer) {
-                var saveByteArray = (function () {
-                    var a = document.createElement("a");
-                    document.body.appendChild(a);
-                    a.style = "display: none";
-                    return function (data, name) {
-                        var blob = new Blob(data, {type: "octet/stream"}),
-                                url = window.URL.createObjectURL(blob);
-                        a.href = url;
-                        a.download = name;
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        document.body.removeChild(a);
-                    };
-                }());
-
-                saveByteArray([arrayBuffer], 'rikud.mp3');
             },
             onURL = function onURL () {
                 var url = prompt ("enter a URL for an online music file");
@@ -870,7 +868,7 @@
                             url = (url.indexOf("?")==-1) ? url+"?raw=1" : url.replace(/\?/,"?raw=1&");
                         } else if (url.indexOf("youtube.com") || url.indexOf("youtu.be")) {
                             if (JS.isYoutubeEnabled) {
-                                return downloadFile(sYoutubeDownloader + url);
+                                return JS.downloadFile(sYoutubeDownloader + url);
                             } else {
                                 alert ("Unable to download from youtube at the moment. Please download the file to your computer first");
                             }
@@ -884,6 +882,20 @@
                 }
 
                 return false;
+            },
+            onErrorLoadingFile = function onErrorLoadingFile (evt) {
+                switch(evt.target.error.code) {
+                    case evt.target.error.NOT_FOUND_ERR:
+                        alert('File Not Found!');
+                        break;
+                    case evt.target.error.NOT_READABLE_ERR:
+                        alert('File is not readable');
+                        break;
+                    case evt.target.error.ABORT_ERR:
+                        break; // noop
+                    default:
+                        alert('An error occurred reading this file.');
+                }
             },
             onAudioError = function onAudioError (ev) {
                 if (dElms.audio.error.code == 4) {
@@ -906,7 +918,7 @@
             onPlay = function onPlay () {
                 this.btnPlay.className += " pressed";
 
-                var delay = + this.delay.value,
+                var delay = +this.delay.value,
                     that = this;
                 if (this.audio.currentTime == (+this.start.value) && delay) {
                     if (delayCountDown) { clearInterval(this.delayCountDown); }
@@ -924,10 +936,10 @@
                 }
             },
             onReset = function onReset () {
-                var time = + this.start.value;
+                var time = +this.start.value;
                 this.audio.currentTime = time;
                 updateCurrentPositionField.call(this,time);
-                updateProgress.call(this)
+                updateProgress.call(this);
             },
             onPause = function onPause () {
                 this.audio.pause();
@@ -1061,6 +1073,7 @@
                 JS.setEventAndDefaultMethod("playing", onPlaying.bind(dElms));
                 JS.setEventAndDefaultMethod("notify", onNotify.bind(dElms));
                 JS.setEventAndDefaultMethod("alert", onAlert.bind(dElms));
+                JS.addEventListener("file-error",onErrorLoadingFile.bind(dElms));
                 document.onkeyup = onKeyUp.bind(dElms);
 
                 //wheel animation
