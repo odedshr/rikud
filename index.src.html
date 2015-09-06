@@ -682,7 +682,7 @@ TODO:
             dropboxOptions = {
                 success: function(files) {
                     var file = files[0];
-                    JS.dispatchEvent("file-loaded",{ name: file.name,
+                    dispatchEvent("file-loaded",{ name: file.name,
                                                      data: file.link});
                 },
                 cancel: function() {},
