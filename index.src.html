@@ -475,6 +475,11 @@
             line-height: 1.5rem;
         }
         /* ============================================================================================ */
+        @media only screen and (max-device-width: 479px) {
+            html body .progress {
+                left: -28%;
+            }
+        }
         @media only screen and (max-device-width: 480px) {
             .page.intro,
             .page.loading {
@@ -502,7 +507,6 @@
                 overflow: hidden;
             }
             html body .progress {
-                left: -28%;
                 margin-top: -1.5rem;
             }
             html body .controls {
@@ -522,6 +526,9 @@
                 margin: 2rem auto;
             }
 
+            html body .progress-control {
+                text-align: center;
+            }
             html body .progress-control li {
                 width: 4.5rem;
             }
@@ -537,6 +544,12 @@
 
             html body .readme {
                 width: 90%;
+            }
+        }
+
+        @media only screen and (max-device-width: 600px) {
+            html body .progress {
+                left: -8%;
             }
         }
     </style>
